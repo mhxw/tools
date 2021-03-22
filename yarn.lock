@@ -2362,6 +2362,15 @@ cli-width@^3.0.0:
   resolved "https://registry.npm.taobao.org/cli-width/download/cli-width-3.0.0.tgz#a2f48437a2caa9a22436e794bf071ec9e61cedf6"
   integrity sha1-ovSEN6LKqaIkNueUvwceyeYc7fY=
 
+clipboard@^2.0.0:
+  version "2.0.8"
+  resolved "https://registry.npm.taobao.org/clipboard/download/clipboard-2.0.8.tgz#ffc6c103dd2967a83005f3f61976aa4655a4cdba"
+  integrity sha1-/8bBA90pZ6gwBfP2GXaqRlWkzbo=
+  dependencies:
+    good-listener "^1.2.2"
+    select "^1.1.2"
+    tiny-emitter "^2.0.0"
+
 coa@^2.0.2:
   version "2.0.2"
   resolved "https://registry.npm.taobao.org/coa/download/coa-2.0.2.tgz#43f6c21151b4ef2bf57187db0d73de229e3e7ec3"
@@ -2925,6 +2934,11 @@ defu@^3.2.2:
   version "3.2.2"
   resolved "https://registry.npm.taobao.org/defu/download/defu-3.2.2.tgz?cache=0&sync_timestamp=1605014637897&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fdefu%2Fdownload%2Fdefu-3.2.2.tgz#be20f4cc49b9805d54ee6b610658d53894942e97"
   integrity sha1-viD0zEm5gF1U7mthBljVOJSULpc=
+
+delegate@^3.1.2:
+  version "3.2.0"
+  resolved "https://registry.npm.taobao.org/delegate/download/delegate-3.2.0.tgz#b66b71c3158522e8ab5744f720d8ca0c2af59166"
+  integrity sha1-tmtxwxWFIuirV0T3INjKDCr1kWY=
 
 depd@~1.1.2:
   version "1.1.2"
@@ -3723,6 +3737,13 @@ globby@^11.0.2:
     merge2 "^1.3.0"
     slash "^3.0.0"
 
+good-listener@^1.2.2:
+  version "1.2.2"
+  resolved "https://registry.npm.taobao.org/good-listener/download/good-listener-1.2.2.tgz#d53b30cdf9313dffb7dc9a0d477096aa6d145c50"
+  integrity sha1-1TswzfkxPf+33JoNR3CWqm0UXFA=
+  dependencies:
+    delegate "^3.1.2"
+
 graceful-fs@^4.1.11, graceful-fs@^4.1.15, graceful-fs@^4.1.2, graceful-fs@^4.1.6, graceful-fs@^4.2.0, graceful-fs@^4.2.4:
   version "4.2.6"
   resolved "https://registry.npm.taobao.org/graceful-fs/download/graceful-fs-4.2.6.tgz#ff040b2b0853b23c3d31027523706f1885d76bee"
@@ -3855,6 +3876,11 @@ hex-color-regex@^1.1.0:
   version "1.1.0"
   resolved "https://registry.npm.taobao.org/hex-color-regex/download/hex-color-regex-1.1.0.tgz#4c06fccb4602fe2602b3c93df82d7e7dbf1a8a8e"
   integrity sha1-TAb8y0YC/iYCs8k9+C1+fb8aio4=
+
+highlight.js@^10.1.2:
+  version "10.7.1"
+  resolved "https://registry.npm.taobao.org/highlight.js/download/highlight.js-10.7.1.tgz#a8ec4152db24ea630c90927d6cae2a45f8ecb955"
+  integrity sha1-qOxBUtsk6mMMkJJ9bK4qRfjsuVU=
 
 hmac-drbg@^1.0.1:
   version "1.0.1"
@@ -5123,6 +5149,20 @@ number-to-bn@1.7.0:
   dependencies:
     bn.js "4.11.6"
     strip-hex-prefix "1.0.0"
+
+nuxt-clipboard@^0.0.3:
+  version "0.0.3"
+  resolved "https://registry.npm.taobao.org/nuxt-clipboard/download/nuxt-clipboard-0.0.3.tgz#beedbd1e5a2f77cad826438ac541ca735f3a7142"
+  integrity sha1-vu29Hlovd8rYJkOKxUHKc186cUI=
+  dependencies:
+    vue-clipboard2 "^0.3.1"
+
+nuxt-highlightjs@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.npm.taobao.org/nuxt-highlightjs/download/nuxt-highlightjs-1.0.1.tgz#6809a9ccebfff8993d69a85a9095650069268d66"
+  integrity sha1-aAmpzOv/+Jk9aahakJVlAGkmjWY=
+  dependencies:
+    highlight.js "^10.1.2"
 
 nuxt-i18n@^6.20.3:
   version "6.20.3"
@@ -6681,6 +6721,11 @@ scule@^0.1.1:
   resolved "https://registry.npm.taobao.org/scule/download/scule-0.1.1.tgz#6bf026f1815c646f061761f9bfd7a3e783f2d05c"
   integrity sha1-a/Am8YFcZG8GF2H5v9ej54Py0Fw=
 
+select@^1.1.2:
+  version "1.1.2"
+  resolved "https://registry.npm.taobao.org/select/download/select-1.1.2.tgz#0e7350acdec80b1108528786ec1d4418d11b396d"
+  integrity sha1-DnNQrN7ICxEIUoeG7B1EGNEbOW0=
+
 semver@7.0.0:
   version "7.0.0"
   resolved "https://registry.npm.taobao.org/semver/download/semver-7.0.0.tgz#5f3ca35761e47e05b206c6daff2cf814f0316b8e"
@@ -7334,6 +7379,11 @@ timsort@^0.3.0:
   resolved "https://registry.npm.taobao.org/timsort/download/timsort-0.3.0.tgz#405411a8e7e6339fe64db9a234de11dc31e02bd4"
   integrity sha1-QFQRqOfmM5/mTbmiNN4R3DHgK9Q=
 
+tiny-emitter@^2.0.0:
+  version "2.1.0"
+  resolved "https://registry.npm.taobao.org/tiny-emitter/download/tiny-emitter-2.1.0.tgz#1d1a56edfc51c43e863cbb5382a72330e3555423"
+  integrity sha1-HRpW7fxRxD6GPLtTgqcjMONVVCM=
+
 tmp@^0.0.33:
   version "0.0.33"
   resolved "https://registry.npm.taobao.org/tmp/download/tmp-0.0.33.tgz?cache=0&sync_timestamp=1593529725165&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Ftmp%2Fdownload%2Ftmp-0.0.33.tgz#6d34335889768d21b2bcda0aa277ced3b1bfadf9"
@@ -7673,6 +7723,13 @@ vue-client-only@^2.0.0:
   version "2.0.0"
   resolved "https://registry.npm.taobao.org/vue-client-only/download/vue-client-only-2.0.0.tgz#ddad8d675ee02c761a14229f0e440e219de1da1c"
   integrity sha1-3a2NZ17gLHYaFCKfDkQOIZ3h2hw=
+
+vue-clipboard2@^0.3.1:
+  version "0.3.1"
+  resolved "https://registry.npm.taobao.org/vue-clipboard2/download/vue-clipboard2-0.3.1.tgz#6e551fb7bd384889b28b0da3b12289ed6bca4894"
+  integrity sha1-blUft704SImyiw2jsSKJ7WvKSJQ=
+  dependencies:
+    clipboard "^2.0.0"
 
 vue-hot-reload-api@^2.3.0:
   version "2.3.4"

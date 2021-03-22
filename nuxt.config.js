@@ -37,6 +37,10 @@ export default {
 
   // Modules: https://go.nuxtjs.dev/config-modules
   modules: [
+    'nuxt-clipboard',
+    ['nuxt-highlightjs', {
+      style: 'obsidian'
+    }]
   ],
 
   // Build Configuration: https://go.nuxtjs.dev/config-build

@@ -1,24 +1,31 @@
 <template>
   <div class="container">
     <div>
-      <Logo />
 
       <div class="links">
         <a
-          href="https://nuxtjs.org/"
+          href="https://mhxw.life/tools/calculator/"
           target="_blank"
           rel="noopener noreferrer"
           class="button--green"
         >
-          Documentation
+          挖矿计算器
         </a>
         <a
-          href="https://github.com/nuxt/nuxt.js"
+          href="https://mhxw.life/tools/git/"
           target="_blank"
           rel="noopener noreferrer"
           class="button--grey"
         >
-          GitHub
+          Git智能助手
+        </a>
+        <a
+          href="https://mhxw.life/tools/crypt/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="button--grey"
+        >
+          以太坊私钥和Keystore生成互转工具
         </a>
       </div>
     </div>
