@@ -21,6 +21,18 @@ For detailed explanation on how things work, check out [Nuxt.js docs](https://nu
 
 ## 补充扩展
 
+### 交易所API文档
+
+```shell
+https://docs.kucoin.com/
+https://www.okex.com/docs/
+https://huobiapi.github.io/docs/
+https://binance-docs.github.io/apidocs/
+https://docs.pro.coinbase.com/
+https://docs.ftx.com/
+https://coinmarketcap.com/rankings/exchanges/
+```
+
 ### 交易费率
 
 - OKEx 手续费
