@@ -1,0 +1,26 @@
+{
+  "name": "tools",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "lint": "oxlint"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.105.0",
+    "next": "16.4.3",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "viem": "^2.57.13",
+    "wagmi": "^3.7.9"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "oxlint": "^1.89.0",
+    "typescript": "~7.0.2"
+  }
+}

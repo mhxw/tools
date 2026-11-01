@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml"
+>
+  <url>
+    <loc>https://mhxw.github.io/tools/</loc>
+    <lastmod>2026-11-02</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mhxw.github.io/tools/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://mhxw.github.io/tools/zh/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mhxw.github.io/tools/" />
+  </url>
+  <url>
+    <loc>https://mhxw.github.io/tools/zh/</loc>
+    <lastmod>2026-11-02</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mhxw.github.io/tools/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://mhxw.github.io/tools/zh/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mhxw.github.io/tools/" />
+  </url>
+  <url>
+    <loc>https://mhxw.github.io/tools/eip7702/</loc>
+    <lastmod>2026-11-02</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mhxw.github.io/tools/eip7702/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://mhxw.github.io/tools/zh/eip7702/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mhxw.github.io/tools/eip7702/" />
+  </url>
+  <url>
+    <loc>https://mhxw.github.io/tools/zh/eip7702/</loc>
+    <lastmod>2026-11-02</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mhxw.github.io/tools/eip7702/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://mhxw.github.io/tools/zh/eip7702/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mhxw.github.io/tools/eip7702/" />
+  </url>
+  <url>
+    <loc>https://mhxw.github.io/tools/eip7702/tx/</loc>
+    <lastmod>2026-11-02</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mhxw.github.io/tools/eip7702/tx/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://mhxw.github.io/tools/zh/eip7702/tx/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mhxw.github.io/tools/eip7702/tx/" />
+  </url>
+  <url>
+    <loc>https://mhxw.github.io/tools/zh/eip7702/tx/</loc>
+    <lastmod>2026-11-02</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mhxw.github.io/tools/eip7702/tx/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://mhxw.github.io/tools/zh/eip7702/tx/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mhxw.github.io/tools/eip7702/tx/" />
+  </url>
+  <url>
+    <loc>https://mhxw.github.io/tools/eip7702/metamask/</loc>
+    <lastmod>2026-11-02</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mhxw.github.io/tools/eip7702/metamask/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://mhxw.github.io/tools/zh/eip7702/metamask/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mhxw.github.io/tools/eip7702/metamask/" />
+  </url>
+  <url>
+    <loc>https://mhxw.github.io/tools/zh/eip7702/metamask/</loc>
+    <lastmod>2026-11-02</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mhxw.github.io/tools/eip7702/metamask/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://mhxw.github.io/tools/zh/eip7702/metamask/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mhxw.github.io/tools/eip7702/metamask/" />
+  </url>
+</urlset>
