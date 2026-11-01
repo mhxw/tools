@@ -24,6 +24,8 @@ const zh = {
   'common.success': '成功',
   'common.failed': '失败',
   'common.pending': '等待上链',
+  'common.copy': '复制',
+  'common.copied': '已复制',
 
   'app.pageTitle': '链上工具箱 · EIP-7702 检测与撤销',
   'app.language': '语言',
@@ -243,6 +245,9 @@ const zh = {
   'tx.nonce': '授权 nonce',
   'tx.chainId': '链 ID',
   'tx.signature': '签名',
+  'tx.signatureHint':
+    '签名由 yParity、r、s 三部分组成，不是可打开的链接。完整值如下，可单独复制。',
+  'tx.copySignature': '复制完整签名',
 } as const
 
 export type MessageKey = keyof typeof zh
@@ -262,6 +267,8 @@ const en: Record<MessageKey, string> = {
   'common.success': 'Success',
   'common.failed': 'Failed',
   'common.pending': 'Pending',
+  'common.copy': 'Copy',
+  'common.copied': 'Copied',
 
   'app.pageTitle': 'Onchain Toolbox · EIP-7702 Inspector & Revoke',
   'app.language': 'Language',
@@ -498,6 +505,9 @@ const en: Record<MessageKey, string> = {
   'tx.nonce': 'Authorization nonce',
   'tx.chainId': 'Chain ID',
   'tx.signature': 'Signature',
+  'tx.signatureHint':
+    'A signature has three parts (yParity, r, s); it is not a clickable link. Full values are shown below and can be copied.',
+  'tx.copySignature': 'Copy full signature',
 }
 
 const messages: Record<Language, Record<MessageKey, string>> = { zh, en }

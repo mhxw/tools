@@ -1330,3 +1330,67 @@ footer p {
 .tx-search-hint {
   margin: 8px 0 0;
 }
+
+/* ---------- Authorization signature ---------- */
+
+.signature-block {
+  display: grid;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.signature-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.sig-row {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.sig-label {
+  padding-top: 9px;
+  color: var(--muted-2);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+}
+
+.sig-value {
+  display: block;
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.24);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+
+.copy-btn {
+  padding: 6px 10px;
+  font-size: 0.72rem;
+}
+
+@media (max-width: 640px) {
+  .sig-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .sig-label {
+    grid-column: 1 / -1;
+    padding-top: 0;
+  }
+}

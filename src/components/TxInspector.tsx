@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { isHash, type Address, type Hash, type Hex } from 'viem'
+import { isHash, type Address, type Hash } from 'viem'
 import {
   chainName,
   explorerAddressUrl,
@@ -12,6 +12,7 @@ import {
 import { useI18n } from '../i18n'
 import { getKnownDelegate, shortAddress } from '../lib/eip7702'
 import { findTransaction } from '../lib/tx-scan'
+import { CopyButton } from './CopyButton'
 
 type Props = {
   chainId: number
@@ -271,10 +272,41 @@ export function TxInspector({
                           </div>
                           <div>
                             <dt>{t('tx.signature')}</dt>
-                            <dd className="mono break small">
-                              yParity: {authorization.yParity} · r:{' '}
-                              {truncateHex(authorization.r)} · s:{' '}
-                              {truncateHex(authorization.s)}
+                            <dd>
+                              <div className="signature-block">
+                                <div className="signature-head">
+                                  <span className="muted small">
+                                    {t('tx.signatureHint')}
+                                  </span>
+                                  <CopyButton
+                                    label={t('tx.copySignature')}
+                                    value={`yParity: ${authorization.yParity}\nr: ${authorization.r}\ns: ${authorization.s}`}
+                                  />
+                                </div>
+                                <div className="sig-row">
+                                  <span className="sig-label">yParity</span>
+                                  <code className="sig-value">
+                                    {authorization.yParity}
+                                  </code>
+                                  <CopyButton
+                                    value={String(authorization.yParity)}
+                                  />
+                                </div>
+                                <div className="sig-row">
+                                  <span className="sig-label">r</span>
+                                  <code className="sig-value">
+                                    {authorization.r}
+                                  </code>
+                                  <CopyButton value={authorization.r} />
+                                </div>
+                                <div className="sig-row">
+                                  <span className="sig-label">s</span>
+                                  <code className="sig-value">
+                                    {authorization.s}
+                                  </code>
+                                  <CopyButton value={authorization.s} />
+                                </div>
+                              </div>
                             </dd>
                           </div>
                         </dl>
@@ -297,8 +329,4 @@ export function TxInspector({
       )}
     </section>
   )
-}
-
-function truncateHex(value: Hex) {
-  return `${value.slice(0, 12)}...${value.slice(-8)}`
 }
