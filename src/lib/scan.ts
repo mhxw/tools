@@ -14,7 +14,11 @@ function errorMessage(error: unknown) {
 
 async function readCode(chainId: number, address: Address) {
   const chain = getChain(chainId)
-  const attempts = rpcUrls(chainId).map(async (url) => {
+  let lastError: unknown
+
+  // Try fallbacks one by one; a successful empty-code read must not trigger
+  // extra requests to other RPCs.
+  for (const url of rpcUrls(chainId)) {
     try {
       const client = createPublicClient({
         chain,
@@ -25,12 +29,13 @@ async function readCode(chainId: number, address: Address) {
       })
       return await client.getCode({ address })
     } catch (error) {
-      throw new Error(`${new URL(url).host}: ${errorMessage(error)}`)
+      lastError = new Error(
+        `${new URL(url).host}: ${errorMessage(error)}`,
+      )
     }
-  })
+  }
 
-  // First successful endpoint wins; slow or blocked RPCs do not hold up the scan.
-  return Promise.any(attempts)
+  throw lastError ?? new Error('No RPC endpoint configured')
 }
 
 /**
@@ -48,11 +53,7 @@ export async function scanDelegations(
         const code = await readCode(chainId, address)
         return { chainId, info: parseDelegation(code) }
       } catch (error) {
-        const message =
-          error instanceof AggregateError
-            ? error.errors.map(errorMessage).join(' | ')
-            : errorMessage(error)
-        return { chainId, error: message }
+        return { chainId, error: errorMessage(error) }
       }
     }),
   )

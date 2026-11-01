@@ -22,44 +22,62 @@ export type FoundTransaction = {
   authorizations: RecoveredAuthorization[]
 }
 
+async function readTransaction(url: string, chainId: number, hash: Hash) {
+  const client = createPublicClient({
+    chain: getChain(chainId),
+    transport: http(url, { timeout: 8_000, retryCount: 0 }),
+  })
+
+  // Raw request first so "not found" (null) is distinct from an RPC failure
+  // and does not trigger the fallback endpoint.
+  const raw = await client.request({
+    method: 'eth_getTransactionByHash',
+    params: [hash],
+  })
+  if (!raw) return null
+
+  const transaction = await client.getTransaction({ hash })
+
+  let receipt: TransactionReceipt | undefined
+  try {
+    receipt = await client.getTransactionReceipt({ hash })
+  } catch {
+    // Pending transactions have no receipt yet.
+  }
+
+  const authorizations = await Promise.all(
+    (transaction.authorizationList ?? []).map(async (authorization) => ({
+      ...authorization,
+      authority: await recoverAuthorizationAddress({
+        authorization,
+      }).catch(() => undefined),
+    })),
+  )
+
+  return { chainId, transaction, receipt, authorizations }
+}
+
 async function tryChain(
   chainId: number,
   hash: Hash,
 ): Promise<FoundTransaction | null> {
-  const chain = getChain(chainId)
+  let lastError: unknown
 
-  const attempts = rpcUrls(chainId).map(async (url) => {
-    const client = createPublicClient({
-      chain,
-      transport: http(url, { timeout: 8_000, retryCount: 0 }),
-    })
-
-    const transaction = await client.getTransaction({ hash })
-
-    let receipt: TransactionReceipt | undefined
+  for (const url of rpcUrls(chainId)) {
     try {
-      receipt = await client.getTransactionReceipt({ hash })
-    } catch {
-      // Pending transactions have no receipt yet.
+      const result = await readTransaction(url, chainId, hash)
+      if (!result) return null
+      return result
+    } catch (error) {
+      lastError = error
     }
+  }
 
-    const authorizations = await Promise.all(
-      (transaction.authorizationList ?? []).map(async (authorization) => ({
-        ...authorization,
-        authority: await recoverAuthorizationAddress({
-          authorization,
-        }).catch(() => undefined),
-      })),
-    )
-
-    return { chainId, transaction, receipt, authorizations }
-  })
-
-  try {
-    return await Promise.any(attempts)
-  } catch {
+  if (lastError) {
+    // All endpoints failed; report as not found rather than blocking the scan.
     return null
   }
+  return null
 }
 
 /**

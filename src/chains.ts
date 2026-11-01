@@ -101,9 +101,8 @@ export const RPC_URLS: Record<number, string> = {
 
 /** Optional extra endpoints tried in parallel with the primary RPC. */
 export const RPC_FALLBACKS: Record<number, string[]> = {
-  [BSC_MAINNET_ID]: ['https://1rpc.io/bnb'],
+  [BSC_MAINNET_ID]: ['https://bsc-dataseed1.binance.org'],
   [BASE_MAINNET_ID]: ['https://base.drpc.org'],
-  [POLYGON_ID]: ['https://1rpc.io/matic'],
 }
 
 export function rpcUrls(chainId: number): string[] {
