@@ -1,10 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { isHash, type Hash, type Hex } from 'viem'
-import { recoverAuthorizationAddress } from 'viem/utils'
-import { usePublicClient } from 'wagmi'
+import { isHash, type Address, type Hash, type Hex } from 'viem'
 import {
   chainName,
   explorerAddressUrl,
@@ -13,47 +11,45 @@ import {
 } from '../chain-meta'
 import { useI18n } from '../i18n'
 import { getKnownDelegate, shortAddress } from '../lib/eip7702'
+import { findTransaction } from '../lib/tx-scan'
 
 type Props = {
   chainId: number
   initialTxHash?: Hash
-  onInspectAddress: (address: `0x${string}`) => void
+  onSelectChain: (chainId: number) => void
+  onInspectAddress: (address: Address, chainId: number) => void
 }
 
 export function TxInspector({
   chainId,
   initialTxHash,
+  onSelectChain,
   onInspectAddress,
 }: Props) {
   const { t } = useI18n()
   const [input, setInput] = useState(() => initialTxHash ?? '')
   const [txHash, setTxHash] = useState<Hash | undefined>(initialTxHash)
   const [inputError, setInputError] = useState<string>()
-  const publicClient = usePublicClient({ chainId })
 
   const txQuery = useQuery({
-    queryKey: ['tx-inspect', chainId, txHash],
-    enabled: Boolean(publicClient && txHash),
-    queryFn: async () => {
-      if (!publicClient || !txHash) throw new Error('Missing RPC client or hash')
-
-      const [transaction, receipt] = await Promise.all([
-        publicClient.getTransaction({ hash: txHash }),
-        publicClient.getTransactionReceipt({ hash: txHash }),
-      ])
-
-      const authorizations = await Promise.all(
-        (transaction.authorizationList ?? []).map(async (authorization) => {
-          const authority = await recoverAuthorizationAddress({
-            authorization,
-          }).catch(() => undefined)
-          return { ...authorization, authority }
-        }),
-      )
-
-      return { transaction, receipt, authorizations }
-    },
+    queryKey: ['tx-inspect-multi', txHash],
+    enabled: Boolean(txHash),
+    queryFn: () => findTransaction(txHash!),
   })
+
+  const found = txQuery.data
+  const transaction = found?.transaction
+  const receipt = found?.receipt
+  const authorizations = found?.authorizations ?? []
+  const resultChainId = found?.chainId ?? chainId
+  const is7702 = transaction?.type === 'eip7702'
+  const foundChainId = found?.chainId
+
+  useEffect(() => {
+    if (foundChainId !== undefined && foundChainId !== chainId) {
+      onSelectChain(foundChainId)
+    }
+  }, [foundChainId, chainId, onSelectChain])
 
   function handleQuery() {
     const value = input.trim()
@@ -65,11 +61,6 @@ export function TxInspector({
     setTxHash(value as Hash)
   }
 
-  const transaction = txQuery.data?.transaction
-  const receipt = txQuery.data?.receipt
-  const authorizations = txQuery.data?.authorizations ?? []
-  const is7702 = transaction?.type === 'eip7702'
-
   return (
     <section className="panel">
       <div className="panel-head">
@@ -77,7 +68,9 @@ export function TxInspector({
           <p className="eyebrow">{t('tx.eyebrow')}</p>
           <h2>{t('tx.title')}</h2>
         </div>
-        <span className="network-chip">{chainName(chainId)}</span>
+        <span className="network-chip">
+          {found ? chainName(resultChainId) : t('tx.multiChain')}
+        </span>
       </div>
 
       <div className="search-row">
@@ -99,6 +92,7 @@ export function TxInspector({
           {t('tx.parse')}
         </button>
       </div>
+      <p className="muted small tx-search-hint">{t('tx.searchHint')}</p>
 
       {inputError && <p className="notice notice-error">{inputError}</p>}
 
@@ -109,14 +103,16 @@ export function TxInspector({
               <p className="eyebrow">{t('tx.txHash')}</p>
               <p className="mono address-line">
                 {txHash}
-                <a
-                  className="inline-link"
-                  href={explorerTxUrl(chainId, txHash)}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {explorerName(chainId)}
-                </a>
+                {found && (
+                  <a
+                    className="inline-link"
+                    href={explorerTxUrl(resultChainId, txHash)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {explorerName(resultChainId)}
+                  </a>
+                )}
               </p>
             </div>
             <button
@@ -133,7 +129,7 @@ export function TxInspector({
 
           {txQuery.isPending ? (
             <div className="status-box status-loading">
-              <span className="spinner" /> {t('tx.loading')}
+              <span className="spinner" /> {t('tx.searching')}
             </div>
           ) : txQuery.isError ? (
             <div className="status-box status-error">
@@ -152,7 +148,10 @@ export function TxInspector({
                     {is7702 ? t('tx.is7702') : t('tx.not7702')}
                   </strong>
                   <p>
-                    {t('tx.type')}
+                    {t('tx.foundOn', {
+                      chain: chainName(resultChainId),
+                    })}{' '}
+                    · {t('tx.type')}
                     <code>{transaction.type}</code>
                     {is7702 &&
                       t('tx.authCount', { count: authorizations.length })}
@@ -167,11 +166,11 @@ export function TxInspector({
                     {transaction.from}
                     <a
                       className="inline-link"
-                      href={explorerAddressUrl(chainId, transaction.from)}
+                      href={explorerAddressUrl(resultChainId, transaction.from)}
                       target="_blank"
                       rel="noreferrer"
                     >
-                      {explorerName(chainId)}
+                      {explorerName(resultChainId)}
                     </a>
                   </dd>
                 </div>
@@ -182,11 +181,14 @@ export function TxInspector({
                     {transaction.to && (
                       <a
                         className="inline-link"
-                        href={explorerAddressUrl(chainId, transaction.to)}
+                        href={explorerAddressUrl(
+                          resultChainId,
+                          transaction.to,
+                        )}
                         target="_blank"
                         rel="noreferrer"
                       >
-                        {explorerName(chainId)}
+                        {explorerName(resultChainId)}
                       </a>
                     )}
                   </dd>
@@ -197,8 +199,10 @@ export function TxInspector({
                     {transaction.blockNumber?.toString() ?? '-'} ·{' '}
                     {receipt?.status === 'success' ? (
                       <span className="kv-ok">{t('common.success')}</span>
-                    ) : (
+                    ) : receipt ? (
                       <span className="kv-bad">{t('common.failed')}</span>
+                    ) : (
+                      <span className="muted">{t('common.pending')}</span>
                     )}
                   </dd>
                 </div>
@@ -215,7 +219,8 @@ export function TxInspector({
                           <span className="auth-index">#{index + 1}</span>
                           <span className="mono">
                             {shortAddress(
-                              authorization.authority ?? authorization.address,
+                              authorization.authority ??
+                                authorization.address,
                               10,
                               8,
                             )}
@@ -225,13 +230,17 @@ export function TxInspector({
                           <div>
                             <dt>{t('tx.signer')}</dt>
                             <dd className="mono break">
-                              {authorization.authority ?? t('tx.unrecoverable')}
+                              {authorization.authority ??
+                                t('tx.unrecoverable')}
                               {authorization.authority && (
                                 <button
                                   className="link-button"
                                   type="button"
                                   onClick={() =>
-                                    onInspectAddress(authorization.authority!)
+                                    onInspectAddress(
+                                      authorization.authority as Address,
+                                      resultChainId,
+                                    )
                                   }
                                 >
                                   {t('tx.inspect')}
@@ -275,7 +284,15 @@ export function TxInspector({
                 </div>
               )}
             </>
-          ) : null}
+          ) : (
+            <div className="status-box status-neutral">
+              <div className="status-icon neutral">?</div>
+              <div>
+                <strong>{t('tx.notFoundTitle')}</strong>
+                <p>{t('tx.notFoundBody')}</p>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </section>

@@ -23,6 +23,7 @@ const zh = {
   'common.walletConnectFailed': '钱包连接失败：{message}',
   'common.success': '成功',
   'common.failed': '失败',
+  'common.pending': '等待上链',
 
   'app.pageTitle': '链上工具箱 · EIP-7702 检测与撤销',
   'app.language': '语言',
@@ -212,6 +213,14 @@ const zh = {
 
   'tx.eyebrow': '交易检查',
   'tx.title': '这笔交易携带了哪些 7702 授权？',
+  'tx.multiChain': '多链查找',
+  'tx.searchHint':
+    '输入交易哈希后会自动查找 Ethereum、BSC、Base、Arbitrum、Optimism、Polygon、Monad 及测试网，无需先切换网络。',
+  'tx.searching': '正在从 Ethereum 开始查找各网络...',
+  'tx.foundOn': '在 {chain} 找到',
+  'tx.notFoundTitle': '未找到该交易',
+  'tx.notFoundBody':
+    '已在支持的主网和测试网中查找，仍未找到该交易哈希。请确认哈希是否正确。',
   'tx.placeholder': '0x... 输入交易哈希',
   'tx.parse': '解析交易',
   'tx.inputError': '请输入有效的交易哈希（0x 开头，64 位十六进制）',
@@ -252,6 +261,7 @@ const en: Record<MessageKey, string> = {
   'common.walletConnectFailed': 'Wallet connection failed: {message}',
   'common.success': 'Success',
   'common.failed': 'Failed',
+  'common.pending': 'Pending',
 
   'app.pageTitle': 'Onchain Toolbox · EIP-7702 Inspector & Revoke',
   'app.language': 'Language',
@@ -457,6 +467,14 @@ const en: Record<MessageKey, string> = {
 
   'tx.eyebrow': 'Transaction inspector',
   'tx.title': 'Which 7702 authorizations does this transaction carry?',
+  'tx.multiChain': 'Multi-chain lookup',
+  'tx.searchHint':
+    'Enter a transaction hash to search Ethereum, BSC, Base, Arbitrum, Optimism, Polygon, Monad and testnets automatically. No network switch needed.',
+  'tx.searching': 'Searching from Ethereum across supported networks...',
+  'tx.foundOn': 'Found on {chain}',
+  'tx.notFoundTitle': 'Transaction not found',
+  'tx.notFoundBody':
+    'Searched the supported mainnets and testnets but could not find this transaction hash. Check the hash and try again.',
   'tx.placeholder': '0x... Enter a transaction hash',
   'tx.parse': 'Inspect transaction',
   'tx.inputError':

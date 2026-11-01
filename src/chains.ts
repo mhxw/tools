@@ -47,6 +47,10 @@ export const SCAN_CHAIN_IDS: readonly number[] = SCAN_CHAINS.map(
   (chain) => chain.id,
 )
 
+export const SUPPORTED_CHAIN_IDS: readonly number[] = SUPPORTED_CHAINS.map(
+  (chain) => chain.id,
+)
+
 export const DEFAULT_CHAIN_ID = BSC_MAINNET_ID
 
 const rpcUrl = (value: string | undefined, fallback: string) =>
@@ -67,7 +71,7 @@ export const RPC_URLS: Record<number, string> = {
   ),
   [BASE_MAINNET_ID]: rpcUrl(
     process.env.NEXT_PUBLIC_BASE_RPC_URL as string | undefined,
-    'https://base-rpc.publicnode.com',
+    'https://mainnet.base.org',
   ),
   [BASE_SEPOLIA_ID]: rpcUrl(
     process.env.NEXT_PUBLIC_BASE_SEPOLIA_RPC_URL as string | undefined,
@@ -83,7 +87,7 @@ export const RPC_URLS: Record<number, string> = {
   ),
   [POLYGON_ID]: rpcUrl(
     process.env.NEXT_PUBLIC_POLYGON_RPC_URL as string | undefined,
-    'https://polygon-bor-rpc.publicnode.com',
+    'https://polygon.drpc.org',
   ),
   [MONAD_ID]: rpcUrl(
     process.env.NEXT_PUBLIC_MONAD_RPC_URL as string | undefined,
@@ -98,6 +102,8 @@ export const RPC_URLS: Record<number, string> = {
 /** Optional extra endpoints tried in parallel with the primary RPC. */
 export const RPC_FALLBACKS: Record<number, string[]> = {
   [BSC_MAINNET_ID]: ['https://1rpc.io/bnb'],
+  [BASE_MAINNET_ID]: ['https://base.drpc.org'],
+  [POLYGON_ID]: ['https://1rpc.io/matic'],
 }
 
 export function rpcUrls(chainId: number): string[] {
