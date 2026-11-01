@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useI18n } from '@/i18n'
 
 type Props = {
-  value: string
+  value: string | (() => string)
   label?: string
 }
 
@@ -21,8 +21,9 @@ export function CopyButton({ value, label }: Props) {
   )
 
   async function copy() {
+    const text = typeof value === 'function' ? value() : value
     try {
-      await navigator.clipboard.writeText(value)
+      await navigator.clipboard.writeText(text)
       setCopied(true)
       if (timer.current) clearTimeout(timer.current)
       timer.current = setTimeout(() => setCopied(false), 1600)

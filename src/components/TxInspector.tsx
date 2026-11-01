@@ -18,6 +18,7 @@ type Props = {
   chainId: number
   initialTxHash?: Hash
   onSelectChain: (chainId: number) => void
+  onQueryHash: (hash: Hash) => void
   onInspectAddress: (address: Address, chainId: number) => void
 }
 
@@ -25,6 +26,7 @@ export function TxInspector({
   chainId,
   initialTxHash,
   onSelectChain,
+  onQueryHash,
   onInspectAddress,
 }: Props) {
   const { t } = useI18n()
@@ -59,7 +61,9 @@ export function TxInspector({
       return
     }
     setInputError(undefined)
-    setTxHash(value as Hash)
+    const hash = value as Hash
+    setTxHash(hash)
+    onQueryHash(hash)
   }
 
   return (
@@ -116,16 +120,26 @@ export function TxInspector({
                 )}
               </p>
             </div>
-            <button
-              className="btn btn-ghost btn-sm"
-              type="button"
-              onClick={() => txQuery.refetch()}
-              disabled={txQuery.isFetching}
-            >
-              {txQuery.isFetching
-                ? t('common.refreshing')
-                : t('common.refresh')}
-            </button>
+            <div className="result-actions">
+              <CopyButton
+                label={t('tx.copyLink')}
+                value={() => {
+                  const url = new URL(window.location.href)
+                  if (txHash) url.searchParams.set('tx', txHash)
+                  return url.toString()
+                }}
+              />
+              <button
+                className="btn btn-ghost btn-sm"
+                type="button"
+                onClick={() => txQuery.refetch()}
+                disabled={txQuery.isFetching}
+              >
+                {txQuery.isFetching
+                  ? t('common.refreshing')
+                  : t('common.refresh')}
+              </button>
+            </div>
           </div>
 
           {txQuery.isPending ? (

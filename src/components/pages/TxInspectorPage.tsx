@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { isHash, type Address, type Hash } from 'viem'
 import { QueryProvider } from '../QueryProvider'
 import { TxInspector } from '../TxInspector'
@@ -21,9 +21,16 @@ function TxInspectorInner() {
   const { lang } = useI18n()
   const rawTx = useSearchParam('tx')
   const router = useRouter()
+  const pathname = usePathname()
   const { chainId, setChainId } = useToolbox()
 
   const initialTxHash = rawTx && isHash(rawTx) ? (rawTx as Hash) : undefined
+
+  function updateHashInUrl(hash: Hash) {
+    const params = new URLSearchParams(window.location.search)
+    params.set('tx', hash)
+    router.replace(`${pathname}?${params.toString()}`)
+  }
 
   function inspectAddress(address: Address, foundChainId: number) {
     const params = new URLSearchParams({
@@ -39,6 +46,7 @@ function TxInspectorInner() {
       chainId={chainId}
       initialTxHash={initialTxHash}
       onSelectChain={setChainId}
+      onQueryHash={updateHashInUrl}
       onInspectAddress={inspectAddress}
     />
   )

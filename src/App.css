@@ -1394,3 +1394,10 @@ footer p {
     padding-top: 0;
   }
 }
+
+.result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}

@@ -248,6 +248,7 @@ const zh = {
   'tx.signatureHint':
     '签名由 yParity、r、s 三部分组成，不是可打开的链接。完整值如下，可单独复制。',
   'tx.copySignature': '复制完整签名',
+  'tx.copyLink': '复制链接',
 } as const
 
 export type MessageKey = keyof typeof zh
@@ -508,6 +509,7 @@ const en: Record<MessageKey, string> = {
   'tx.signatureHint':
     'A signature has three parts (yParity, r, s); it is not a clickable link. Full values are shown below and can be copied.',
   'tx.copySignature': 'Copy full signature',
+  'tx.copyLink': 'Copy link',
 }
 
 const messages: Record<Language, Record<MessageKey, string>> = { zh, en }
