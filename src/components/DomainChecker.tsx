@@ -18,6 +18,7 @@ type Risk = {
 
 type Props = {
   initialDomain?: string
+  onInputDomain: (value: string) => void
   onQueryDomain: (domain: string) => void
 }
 
@@ -60,17 +61,91 @@ function buildRisks(
   } else if (report.dnssec !== 'valid') {
     risks.push({ level: 'info', text: t('domain.riskDnssecMissing') })
   }
+  if (report.dsWeak) {
+    risks.push({ level: 'info', text: t('domain.riskDsWeak') })
+  }
+  if (report.ns.length < 2) {
+    risks.push({
+      level: 'medium',
+      text: t('domain.riskNsCount', { count: report.ns.length }),
+    })
+  }
+  if (report.spfRecords.length > 1) {
+    risks.push({ level: 'high', text: t('domain.riskSpfMultiple') })
+  }
+  if (report.spfLookups > 10) {
+    risks.push({
+      level: 'medium',
+      text: t('domain.riskSpfLookup', { count: report.spfLookups }),
+    })
+  }
+  if (report.dmarcPct !== undefined && report.dmarcPct < 100) {
+    risks.push({
+      level: 'medium',
+      text: t('domain.riskDmarcPct', { pct: report.dmarcPct }),
+    })
+  }
+  if (report.dmarc && !report.dmarcRua) {
+    risks.push({ level: 'info', text: t('domain.riskDmarcRua') })
+  }
   if (report.rdap?.ageDays !== undefined && report.rdap.ageDays < 90) {
     risks.push({
       level: 'high',
       text: t('domain.riskNewDomain', { days: report.rdap.ageDays }),
     })
   }
-  if (report.mx.length === 0) {
+  if (report.rdap?.expiresDays !== undefined) {
+    if (report.rdap.expiresDays < 30) {
+      risks.push({
+        level: 'high',
+        text: t('domain.riskExpiringSoon', {
+          days: report.rdap.expiresDays,
+        }),
+      })
+    } else if (report.rdap.expiresDays < 60) {
+      risks.push({
+        level: 'medium',
+        text: t('domain.riskExpiring', {
+          days: report.rdap.expiresDays,
+        }),
+      })
+    }
+  }
+  if (report.mx.length === 0 && !report.nullMx) {
     risks.push({ level: 'info', text: t('domain.riskNoMx') })
+  }
+  if (report.nullMx) {
+    risks.push({ level: 'info', text: t('domain.riskNullMx') })
   }
   if (report.dkim.length === 0) {
     risks.push({ level: 'info', text: t('domain.riskDkimNone') })
+  }
+
+  const statuses = (report.rdap?.statuses ?? []).map((status) =>
+    status.toLowerCase().replace(/[\s_-]+/g, ''),
+  )
+  if (
+    statuses.includes('clienthold') ||
+    statuses.includes('serverhold')
+  ) {
+    risks.push({ level: 'high', text: t('domain.riskDomainHold') })
+  }
+  if (
+    statuses.includes('pendingdelete') ||
+    statuses.includes('redemptionperiod')
+  ) {
+    risks.push({ level: 'high', text: t('domain.riskPendingDelete') })
+  }
+  if (statuses.length > 0) {
+    if (!statuses.includes('clienttransferprohibited')) {
+      risks.push({ level: 'medium', text: t('domain.riskTransferLock') })
+    }
+    if (
+      !statuses.includes('clientupdateprohibited') ||
+      !statuses.includes('clientdeleteprohibited')
+    ) {
+      risks.push({ level: 'info', text: t('domain.riskDeleteLock') })
+    }
   }
 
   return risks
@@ -176,7 +251,11 @@ function formatDate(value?: string) {
     : value
 }
 
-export function DomainChecker({ initialDomain, onQueryDomain }: Props) {
+export function DomainChecker({
+  initialDomain,
+  onInputDomain,
+  onQueryDomain,
+}: Props) {
   const { t } = useI18n()
   const [input, setInput] = useState(initialDomain ?? '')
   const [dkimSelector, setDkimSelector] = useState('')
@@ -245,8 +324,13 @@ export function DomainChecker({ initialDomain, onQueryDomain }: Props) {
           className="text-input"
           value={input}
           onChange={(event) => {
-            setInput(event.target.value)
+            const value = event.target.value
+            setInput(value)
+            onInputDomain(value)
             setError(undefined)
+            if (report && value.trim().toLowerCase() !== report.domain) {
+              setReport(undefined)
+            }
           }}
           onKeyDown={(event) => {
             if (event.key === 'Enter') handleCheck()
@@ -368,11 +452,13 @@ export function DomainChecker({ initialDomain, onQueryDomain }: Props) {
             <Stat
               label={t('domain.summaryMx')}
               value={
-                report.mx.length
-                  ? String(report.mx.length)
-                  : t('domain.mxNone')
+                report.nullMx
+                  ? t('domain.nullMx')
+                  : report.mx.length
+                    ? String(report.mx.length)
+                    : t('domain.mxNone')
               }
-              tone={report.mx.length ? 'ok' : 'neutral'}
+              tone={report.mx.length && !report.nullMx ? 'ok' : 'neutral'}
             />
           </div>
 
@@ -491,7 +577,44 @@ export function DomainChecker({ initialDomain, onQueryDomain }: Props) {
                   <div>
                     <dt>{t('domain.recordMx')}</dt>
                     <dd>
-                      <MxValues values={report.mx} empty={t('domain.mxNone')} />
+                      {report.nullMx ? (
+                        <span className="muted">{t('domain.nullMx')}</span>
+                      ) : (
+                        <MxValues
+                          values={report.mx}
+                          empty={t('domain.mxNone')}
+                        />
+                      )}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>{t('domain.mtaSts')}</dt>
+                    <dd>
+                      {report.mtaSts ? (
+                        <code className="block-code">{report.mtaSts}</code>
+                      ) : (
+                        <span className="muted">{t('domain.missing')}</span>
+                      )}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>{t('domain.tlsRpt')}</dt>
+                    <dd>
+                      {report.tlsRpt ? (
+                        <code className="block-code">{report.tlsRpt}</code>
+                      ) : (
+                        <span className="muted">{t('domain.missing')}</span>
+                      )}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>{t('domain.bimi')}</dt>
+                    <dd>
+                      {report.bimi ? (
+                        <code className="block-code">{report.bimi}</code>
+                      ) : (
+                        <span className="muted">{t('domain.missing')}</span>
+                      )}
                     </dd>
                   </div>
                 </dl>
@@ -525,7 +648,8 @@ export function DomainChecker({ initialDomain, onQueryDomain }: Props) {
               <div className="domain-section">
                 <h3>{t('domain.sectionRdap')}</h3>
                 {report.rdap ? (
-                  <dl className="kv">
+                  <>
+                    <dl className="kv">
                     <div>
                       <dt>{t('domain.registrar')}</dt>
                       <dd>{report.rdap.registrar ?? t('domain.unknown')}</dd>
@@ -563,6 +687,8 @@ export function DomainChecker({ initialDomain, onQueryDomain }: Props) {
                       </dd>
                     </div>
                   </dl>
+                  <p className="muted small">{t('domain.registryLockHint')}</p>
+                  </>
                 ) : (
                   <p className="muted">{t('domain.rdapUnavailable')}</p>
                 )}

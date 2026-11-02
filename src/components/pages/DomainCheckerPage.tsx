@@ -1,24 +1,31 @@
 'use client'
 
-import { usePathname, useRouter } from 'next/navigation'
 import { DomainChecker } from '../DomainChecker'
 import { useSearchParam } from '@/lib/use-search-param'
 
 export function DomainCheckerPage() {
   const rawDomain = useSearchParam('domain')
-  const router = useRouter()
-  const pathname = usePathname()
 
-  function updateDomain(domain: string) {
+  function syncDomain(value: string) {
     const params = new URLSearchParams(window.location.search)
-    params.set('domain', domain)
-    router.replace(`${pathname}?${params.toString()}`)
+    const trimmed = value.trim()
+    if (trimmed) params.set('domain', trimmed)
+    else params.delete('domain')
+
+    const query = params.toString()
+    const hash = window.location.hash
+    window.history.replaceState(
+      null,
+      '',
+      `${window.location.pathname}${query ? `?${query}` : ''}${hash}`,
+    )
   }
 
   return (
     <DomainChecker
       initialDomain={rawDomain ?? undefined}
-      onQueryDomain={updateDomain}
+      onInputDomain={syncDomain}
+      onQueryDomain={syncDomain}
     />
   )
 }

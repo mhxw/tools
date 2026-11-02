@@ -145,6 +145,24 @@ const zh = {
   'domain.riskNewDomain': '域名注册时间较短（{days} 天），注意新注册仿冒',
   'domain.riskNoMx': '没有 MX 记录，该域名可能不收邮件',
   'domain.riskDkimNone': '未发现常见 DKIM selector，可能使用自定义 selector',
+  'domain.riskNullMx': '域名声明了 Null MX（0 .），不接收邮件',
+  'domain.nullMx': 'Null MX（不接收邮件）',
+  'domain.riskNsCount': '只有 {count} 个 NS，建议至少 2 个权威 NS',
+  'domain.riskSpfMultiple': '存在多条 SPF 记录，可能导致 SPF 失效',
+  'domain.riskSpfLookup':
+    'SPF 引用约 {count} 次 DNS lookup，接近/超过 10 次限制',
+  'domain.riskDmarcPct': 'DMARC pct={pct}，只对部分邮件生效',
+  'domain.riskDmarcRua': 'DMARC 未配置 rua，没有聚合报告',
+  'domain.riskDsWeak': 'DS 使用 SHA-1（digest type 1），建议升级',
+  'domain.riskDomainHold': '域名处于 clientHold/serverHold，可能无法解析',
+  'domain.riskPendingDelete':
+    '域名处于 pendingDelete/redemptionPeriod，可能即将删除',
+  'domain.riskTransferLock':
+    '未看到 clientTransferProhibited，域名可能没有开启转移锁',
+  'domain.riskDeleteLock':
+    '未看到 clientUpdateProhibited / clientDeleteProhibited，注册商锁定不完整',
+  'domain.riskExpiringSoon': '域名将在 {days} 天内到期',
+  'domain.riskExpiring': '域名将在 {days} 天内到期，建议尽快续费',
   'domain.sectionDns': 'DNS 记录',
   'domain.sectionEmail': '邮件认证',
   'domain.sectionDnssec': 'DNSSEC 与 CAA',
@@ -160,6 +178,9 @@ const zh = {
   'domain.spf': 'SPF',
   'domain.dmarc': 'DMARC',
   'domain.dkim': 'DKIM',
+  'domain.mtaSts': 'MTA-STS',
+  'domain.tlsRpt': 'TLS-RPT',
+  'domain.bimi': 'BIMI',
   'domain.registrar': '注册商',
   'domain.created': '注册时间',
   'domain.expires': '到期时间',
@@ -167,6 +188,8 @@ const zh = {
   'domain.ageDays': '{days} 天',
   'domain.status': '状态',
   'domain.rdapUnavailable': '未获取到 RDAP 信息（该 TLD 可能不支持）',
+  'domain.registryLockHint':
+    'Registry Lock 无法从公开 RDAP 可靠判断，需要到注册商后台人工确认。',
   'domain.noHomograph': '未发现明显的 punycode、混合脚本或隐藏字符。',
   'domain.nxdomainTitle': '域名无法解析',
   'domain.nxdomainBody': '请确认域名拼写，或该域名尚未注册。',
@@ -493,6 +516,27 @@ const en: Record<MessageKey, string> = {
   'domain.riskNoMx': 'No MX records; this domain may not receive email',
   'domain.riskDkimNone':
     'No common DKIM selector found; a custom selector may be in use',
+  'domain.riskNullMx': 'The domain declares a Null MX (0 .) and does not receive mail',
+  'domain.nullMx': 'Null MX (no mail)',
+  'domain.riskNsCount':
+    'Only {count} nameservers found; at least 2 authoritative nameservers are recommended',
+  'domain.riskSpfMultiple':
+    'Multiple SPF records found; this can break SPF',
+  'domain.riskSpfLookup':
+    'SPF performs about {count} DNS lookups, near/over the limit of 10',
+  'domain.riskDmarcPct': 'DMARC pct={pct}, so it only applies to part of the mail',
+  'domain.riskDmarcRua': 'DMARC has no rua, so no aggregate reports',
+  'domain.riskDsWeak': 'DS uses SHA-1 (digest type 1); upgrade recommended',
+  'domain.riskDomainHold':
+    'Domain is on clientHold/serverHold and may not resolve',
+  'domain.riskPendingDelete':
+    'Domain is pendingDelete/redemptionPeriod and may be deleted soon',
+  'domain.riskTransferLock':
+    'clientTransferProhibited not seen; the transfer lock may be off',
+  'domain.riskDeleteLock':
+    'clientUpdateProhibited / clientDeleteProhibited not seen; registrar locks may be incomplete',
+  'domain.riskExpiringSoon': 'Domain expires in {days} days',
+  'domain.riskExpiring': 'Domain expires in {days} days; renew soon',
   'domain.sectionDns': 'DNS records',
   'domain.sectionEmail': 'Email authentication',
   'domain.sectionDnssec': 'DNSSEC and CAA',
@@ -508,6 +552,9 @@ const en: Record<MessageKey, string> = {
   'domain.spf': 'SPF',
   'domain.dmarc': 'DMARC',
   'domain.dkim': 'DKIM',
+  'domain.mtaSts': 'MTA-STS',
+  'domain.tlsRpt': 'TLS-RPT',
+  'domain.bimi': 'BIMI',
   'domain.registrar': 'Registrar',
   'domain.created': 'Created',
   'domain.expires': 'Expires',
@@ -515,6 +562,8 @@ const en: Record<MessageKey, string> = {
   'domain.ageDays': '{days} days',
   'domain.status': 'Status',
   'domain.rdapUnavailable': 'No RDAP data (this TLD may not be supported)',
+  'domain.registryLockHint':
+    'Registry Lock cannot be reliably detected from public RDAP; verify it in the registrar dashboard.',
   'domain.noHomograph':
     'No obvious punycode, mixed-script or hidden characters found.',
   'domain.nxdomainTitle': 'Domain cannot be resolved',

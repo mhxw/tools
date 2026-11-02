@@ -21,6 +21,7 @@ export type RdapInfo = {
   createdAt?: string
   expiresAt?: string
   ageDays?: number
+  expiresDays?: number
   statuses: string[]
 }
 
@@ -40,9 +41,18 @@ export type DomainReport = {
   ds: string[]
   dnssec: DnssecStatus
   spf?: string
+  spfRecords: string[]
   spfAll?: string
+  spfLookups: number
   dmarc?: string
   dmarcPolicy?: string
+  dmarcPct?: number
+  dmarcRua: boolean
+  mtaSts?: string
+  tlsRpt?: string
+  bimi?: string
+  nullMx: boolean
+  dsWeak: boolean
   dkim: DkimRecord[]
   rdap?: RdapInfo
   queryErrors: string[]
@@ -177,7 +187,7 @@ async function checkDkim(
       )
       const record = records(response, RECORD_TYPES.TXT)
         .map((item) => cleanTxt(item.data))
-        .find((value) => /^v=DKIM1\b/i.test(value) || /\bp=/.test(value))
+        .find((value) => /\bp\s*=\s*[^;\s]+/i.test(value))
 
       return record ? { selector, record } : null
     }),
@@ -229,6 +239,10 @@ async function fetchRdap(domain: string): Promise<RdapInfo | undefined> {
     const ageDays = Number.isFinite(createdTime)
       ? Math.max(0, Math.floor((Date.now() - createdTime) / 86_400_000))
       : undefined
+    const expiresTime = expiresAt ? Date.parse(expiresAt) : Number.NaN
+    const expiresDays = Number.isFinite(expiresTime)
+      ? Math.floor((expiresTime - Date.now()) / 86_400_000)
+      : undefined
 
     const registrarEntity = (data.entities ?? []).find((entity) =>
       entity.roles?.includes('registrar'),
@@ -243,6 +257,7 @@ async function fetchRdap(domain: string): Promise<RdapInfo | undefined> {
       createdAt,
       expiresAt,
       ageDays,
+      expiresDays,
       statuses: data.status ?? [],
     }
   } catch {
@@ -353,21 +368,44 @@ export async function checkDomain(
   const nsRecords = records(ns, RECORD_TYPES.NS).map((record) =>
     stripDot(record.data),
   )
-  const mxRecords = records(mx, RECORD_TYPES.MX).map((record) =>
-    parseMx(record.data),
+  const rawMxRecords = records(mx, RECORD_TYPES.MX)
+  const nullMx = rawMxRecords.some(
+    (record) => record.data.trim().split(/\s+/)[1] === '.',
   )
+  const mxRecords = rawMxRecords
+    .filter((record) => record.data.trim().split(/\s+/)[1] !== '.')
+    .map((record) => parseMx(record.data))
   const caaRecords = records(caa, RECORD_TYPES.CAA).map((record) =>
     parseCaa(record.data),
   )
   const dsRecords = records(ds, RECORD_TYPES.DS).map((record) => record.data)
+  const dsWeak = dsRecords.some(
+    (data) => data.trim().split(/\s+/)[2] === '1',
+  )
   const txtRecords = records(txt, RECORD_TYPES.TXT).map((record) =>
     cleanTxt(record.data),
   )
 
-  const spf = txtRecords.find((value) => /^v=spf1(\s|$)/i.test(value))
+  const spfRecords = txtRecords.filter((value) =>
+    /^v=spf1(\s|$)/i.test(value),
+  )
+  const spf = spfRecords[0]
+  const spfLookups = spf
+    ? spf
+        .split(/\s+/)
+        .filter((term) =>
+          /^(include:|a(?::|\/|$)|mx(?::|\/|$)|ptr(?::|$)|exists:|redirect=)/i.test(
+            term,
+          ),
+        ).length
+    : 0
+
   const dmarc = records(dmarcTxt, RECORD_TYPES.TXT)
     .map((record) => cleanTxt(record.data))
     .find((value) => /^v=DMARC1\s*;/i.test(value))
+  const dmarcPctMatch = dmarc?.match(/\bpct\s*=\s*(\d+)/i)
+  const dmarcPct = dmarcPctMatch ? Number(dmarcPctMatch[1]) : undefined
+  const dmarcRua = Boolean(dmarc && /\brua\s*=/i.test(dmarc))
 
   const authenticated = Boolean(a?.AD || aaaa?.AD || ns?.AD)
   const dnssec: DnssecStatus = ds
@@ -388,11 +426,32 @@ export async function checkDomain(
 
   let rdap: RdapInfo | undefined
   let dkim: DkimRecord[] = []
+  let mtaSts: string | undefined
+  let tlsRpt: string | undefined
+  let bimi: string | undefined
   if (!nxdomain) {
-    ;[rdap, dkim] = await Promise.all([
-      fetchRdap(domain),
-      checkDkim(domain, selectors),
-    ])
+    const [rdapResult, dkimResult, mtaStsResult, tlsRptResult, bimiResult] =
+      await Promise.all([
+        fetchRdap(domain),
+        checkDkim(domain, selectors),
+        safeDoh(`_mta-sts.${domain}`, 'TXT'),
+        safeDoh(`_smtp._tls.${domain}`, 'TXT'),
+        safeDoh(`default._bimi.${domain}`, 'TXT'),
+      ])
+    rdap = rdapResult
+    dkim = dkimResult
+
+    const txtValues = (response: typeof mtaStsResult) =>
+      records(response, RECORD_TYPES.TXT).map((record) =>
+        cleanTxt(record.data),
+      )
+    mtaSts = txtValues(mtaStsResult).find((value) =>
+      /^v=STSv1\b/i.test(value),
+    )
+    tlsRpt = txtValues(tlsRptResult).find((value) =>
+      /^v=TLSRPTv1\b/i.test(value),
+    )
+    bimi = txtValues(bimiResult).find((value) => /^v=BIMI1\b/i.test(value))
   }
 
   const queryErrors = [
@@ -423,11 +482,20 @@ export async function checkDomain(
     mx: mxRecords,
     caa: caaRecords,
     ds: dsRecords,
+    dsWeak,
     dnssec,
     spf,
+    spfRecords,
     spfAll: getSpfAll(spf),
+    spfLookups,
     dmarc,
     dmarcPolicy: getDmarcPolicy(dmarc),
+    dmarcPct,
+    dmarcRua,
+    mtaSts,
+    tlsRpt,
+    bimi,
+    nullMx,
     dkim,
     rdap,
     queryErrors,
