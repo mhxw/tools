@@ -616,11 +616,20 @@ export async function checkDomain(
   }
 }
 
-/**
- * Look up known subdomains through HackerTarget's public hostsearch API.
- * It is free, CORS-enabled, and rate-limited (about 50 requests/day/IP).
- */
-export async function fetchSubdomains(domain: string): Promise<string[]> {
+function normalizeSubdomains(hosts: string[], domain: string) {
+  const apex = domain.toLowerCase()
+  const suffix = `.${apex}`
+  return hosts
+    .map((host) => host.trim().toLowerCase().replace(/^\*\./, ''))
+    .filter(
+      (host) =>
+        Boolean(host) &&
+        (host === apex || host.endsWith(suffix)) &&
+        /^[a-z0-9.-]+$/.test(host),
+    )
+}
+
+async function fetchHackerTarget(domain: string): Promise<string[]> {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), 12_000)
 
@@ -636,22 +645,73 @@ export async function fetchSubdomains(domain: string): Promise<string[]> {
       .split(/\r?\n/)
       .map((line) => line.trim())
       .filter((line) => line.includes(','))
-      .map((line) => line.split(',')[0]?.trim().toLowerCase())
-      .filter((host): host is string => Boolean(host))
+      .map((line) => line.split(',')[0] ?? '')
 
     if (hosts.length === 0) {
       if (/no dns|not found/i.test(text)) return []
       throw new Error(text.slice(0, 160) || 'empty response')
     }
 
-    const apex = domain.toLowerCase()
-    const suffix = `.${apex}`
-    return [
-      ...new Set(
-        hosts.filter((host) => host === apex || host.endsWith(suffix)),
-      ),
-    ].sort()
+    return normalizeSubdomains(hosts, domain)
   } finally {
     clearTimeout(timer)
   }
+}
+
+type CertSpotterIssuance = {
+  dns_names?: string[]
+}
+
+async function fetchCertSpotter(domain: string): Promise<string[]> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 12_000)
+
+  try {
+    const response = await fetch(
+      `https://api.certspotter.com/v1/issuances?domain=${encodeURIComponent(domain)}&include_subdomains=true&expand=dns_names`,
+      { signal: controller.signal },
+    )
+    if (!response.ok) throw new Error(`HTTP ${response.status}`)
+
+    const data = (await response.json()) as CertSpotterIssuance[]
+    const names = (Array.isArray(data) ? data : []).flatMap(
+      (issuance) => issuance.dns_names ?? [],
+    )
+
+    return normalizeSubdomains(names, domain)
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+/**
+ * Query HackerTarget and Cert Spotter in parallel, then merge and deduplicate.
+ * Both are free, CORS-enabled, and use public data; either can be rate-limited.
+ */
+export async function fetchSubdomains(domain: string): Promise<string[]> {
+  const results = await Promise.allSettled([
+    fetchHackerTarget(domain),
+    fetchCertSpotter(domain),
+  ])
+
+  const hosts = new Set<string>()
+  let lastError: unknown
+  let succeeded = 0
+
+  for (const result of results) {
+    if (result.status === 'fulfilled') {
+      succeeded += 1
+      for (const host of result.value) hosts.add(host)
+    } else {
+      lastError = result.reason
+    }
+  }
+
+  if (succeeded === 0) {
+    throw lastError instanceof Error
+      ? lastError
+      : new Error('Subdomain lookup failed')
+  }
+
+  return [...hosts].sort()
 }

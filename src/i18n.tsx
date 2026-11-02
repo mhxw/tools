@@ -179,6 +179,8 @@ const zh = {
   'domain.sectionSubdomains': '子域名',
   'domain.subdomainHint':
     '通过公开证书/主机数据查询该域名下出现过的子域名。',
+  'domain.subdomainSources':
+    '数据源：HackerTarget + Cert Spotter（Certificate Transparency）',
   'domain.subdomainQuery': '查询子域名',
   'domain.subdomainRefresh': '重新查询',
   'domain.subdomainLoading': '查询中...',
@@ -188,7 +190,7 @@ const zh = {
   'domain.subdomainError': '子域名查询失败：{message}',
   'domain.subdomainCrtSh': '在 crt.sh 查看完整结果',
   'domain.subdomainPrivacy':
-    '子域名查询会发送到 HackerTarget；免费接口每天约 50 次。',
+    '子域名查询会发送到 HackerTarget 和 Cert Spotter；两个免费接口都有额度/速率限制。',
   'domain.sectionEmail': '邮件认证',
   'domain.sectionDnssec': 'DNSSEC 与 CAA',
   'domain.dnssecCaaTitle': 'DNSSEC 和 CAA 是什么？',
@@ -607,6 +609,8 @@ const en: Record<MessageKey, string> = {
   'domain.sectionSubdomains': 'Subdomains',
   'domain.subdomainHint':
     'Find subdomains seen in public certificate and host data.',
+  'domain.subdomainSources':
+    'Sources: HackerTarget + Cert Spotter (Certificate Transparency)',
   'domain.subdomainQuery': 'Find subdomains',
   'domain.subdomainRefresh': 'Search again',
   'domain.subdomainLoading': 'Searching...',
@@ -616,7 +620,7 @@ const en: Record<MessageKey, string> = {
   'domain.subdomainError': 'Subdomain lookup failed: {message}',
   'domain.subdomainCrtSh': 'View full results on crt.sh',
   'domain.subdomainPrivacy':
-    'Subdomain lookup sends the domain to HackerTarget; the free endpoint allows about 50 requests/day.',
+    'Subdomain lookup sends the domain to HackerTarget and Cert Spotter; both free endpoints are rate-limited.',
   'domain.sectionEmail': 'Email authentication',
   'domain.sectionDnssec': 'DNSSEC and CAA',
   'domain.dnssecCaaTitle': 'What are DNSSEC and CAA?',

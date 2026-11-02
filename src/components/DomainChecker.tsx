@@ -709,6 +709,7 @@ export function DomainChecker({
               <div className="domain-section">
                 <h3>{t('domain.sectionSubdomains')}</h3>
                 <p className="muted small">{t('domain.subdomainHint')}</p>
+                <p className="muted small">{t('domain.subdomainSources')}</p>
                 <div className="actions">
                   <button
                     className="btn btn-ghost btn-sm"
