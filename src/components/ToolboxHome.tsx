@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { chainName } from '@/chain-meta'
 import { useI18n } from '@/i18n'
 import { RichText } from './RichText'
-import { TOOLS, TOOL_PATHS, localePath } from '@/tools'
+import { TOP_LEVEL_TOOLS, localePath } from '@/tools'
 import { useToolbox } from '@/toolbox'
 
 export function ToolboxHome() {
@@ -41,12 +41,12 @@ export function ToolboxHome() {
         </div>
 
         <div className="tool-grid">
-          {TOOLS.map((tool) =>
+          {TOP_LEVEL_TOOLS.map((tool) =>
             tool.status === 'ready' ? (
               <Link
                 className="tool-card"
                 key={tool.id}
-                href={localePath(lang, TOOL_PATHS[tool.id])}
+                href={localePath(lang, tool.path)}
               >
                 <span className="tool-card-top">
                   <span className="tool-icon">{tool.icon}</span>

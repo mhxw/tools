@@ -1,7 +1,9 @@
 import type { Language, MessageKey } from './i18n'
 
 export type ToolId = 'home' | 'address' | 'tx' | 'domain' | 'guide'
-export type ReadyToolId = Exclude<ToolId, 'home'>
+export type TopLevelToolId = 'home' | 'eip7702' | 'domain'
+export type Eip7702ToolId = 'address' | 'tx' | 'guide'
+export type ReadyToolId = 'eip7702' | 'domain'
 
 type ToolBase = {
   icon: string
@@ -13,6 +15,7 @@ type ToolBase = {
 export type ReadyTool = ToolBase & {
   id: ReadyToolId
   status: 'ready'
+  path: string
 }
 
 export type ComingTool = ToolBase & {
@@ -23,25 +26,19 @@ export type ComingTool = ToolBase & {
 export type ToolDefinition = ReadyTool | ComingTool
 
 /**
- * Toolbox registry. Add a ready tool here together with a route entry below,
- * or add a `coming` card to reserve space for the next utility.
+ * Top-level toolbox modules. EIP-7702 owns its own sub-tools (checker,
+ * transaction inspector, revoke guide); they are not separate top-level
+ * modules.
  */
-export const TOOLS: ToolDefinition[] = [
+export const TOP_LEVEL_TOOLS: ToolDefinition[] = [
   {
-    id: 'address',
+    id: 'eip7702',
     status: 'ready',
     icon: '7702',
-    title: 'tool.addressTitle',
-    description: 'tool.addressDesc',
-    tag: 'tool.addressTag',
-  },
-  {
-    id: 'tx',
-    status: 'ready',
-    icon: 'TX',
-    title: 'tool.txTitle',
-    description: 'tool.txDesc',
-    tag: 'tool.txTag',
+    title: 'tool.eip7702Title',
+    description: 'tool.eip7702Desc',
+    tag: 'tool.eip7702Tag',
+    path: '/eip7702',
   },
   {
     id: 'domain',
@@ -50,14 +47,7 @@ export const TOOLS: ToolDefinition[] = [
     title: 'tool.domainTitle',
     description: 'tool.domainDesc',
     tag: 'tool.domainTag',
-  },
-  {
-    id: 'guide',
-    status: 'ready',
-    icon: 'MM',
-    title: 'tool.guideTitle',
-    description: 'tool.guideDesc',
-    tag: 'tool.guideTag',
+    path: '/domain',
   },
   {
     id: 'approvals',
@@ -67,6 +57,16 @@ export const TOOLS: ToolDefinition[] = [
     description: 'home.approvalsDesc',
     tag: 'home.comingTag',
   },
+]
+
+export const EIP7702_SUB_TOOLS: Array<{
+  id: Eip7702ToolId
+  path: string
+  label: MessageKey
+}> = [
+  { id: 'address', path: '/eip7702', label: 'app.navAddress' },
+  { id: 'tx', path: '/eip7702/tx', label: 'app.navTx' },
+  { id: 'guide', path: '/eip7702/metamask', label: 'app.navGuide' },
 ]
 
 export const TOOL_PATHS: Record<ToolId, string> = {
@@ -84,6 +84,14 @@ export function toolFromPath(pathname: string): ToolId {
   if (path === '/eip7702/metamask') return 'guide'
   if (path === '/eip7702') return 'address'
   if (path === '/domain') return 'domain'
+  return 'home'
+}
+
+export function topLevelFromPath(pathname: string): TopLevelToolId {
+  const path = stripLocale(pathname)
+
+  if (path === '/domain' || path.startsWith('/domain/')) return 'domain'
+  if (path === '/eip7702' || path.startsWith('/eip7702/')) return 'eip7702'
   return 'home'
 }
 

@@ -10,20 +10,19 @@ import {
 } from '@/chain-meta'
 import { useI18n, type MessageKey } from '@/i18n'
 import {
-  TOOL_PATHS,
+  EIP7702_SUB_TOOLS,
   localePath,
   stripLocale,
   toolFromPath,
-  type ToolId,
+  topLevelFromPath,
+  type TopLevelToolId,
 } from '@/tools'
 import { useToolbox } from '@/toolbox'
 
-const NAV: Array<{ id: ToolId; label: MessageKey }> = [
-  { id: 'home', label: 'app.navHome' },
-  { id: 'address', label: 'app.navAddress' },
-  { id: 'tx', label: 'app.navTx' },
-  { id: 'domain', label: 'app.navDomain' },
-  { id: 'guide', label: 'app.navGuide' },
+const NAV: Array<{ id: TopLevelToolId; label: MessageKey; path: string }> = [
+  { id: 'home', label: 'app.navHome', path: '/' },
+  { id: 'eip7702', label: 'app.nav7702', path: '/eip7702' },
+  { id: 'domain', label: 'app.navDomain', path: '/domain' },
 ]
 
 export function Shell({ children }: { children: ReactNode }) {
@@ -32,6 +31,7 @@ export function Shell({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? '/'
   const basePath = stripLocale(pathname)
   const activeTool = toolFromPath(basePath)
+  const activeTopLevel = topLevelFromPath(basePath)
   const [query, setQuery] = useState('')
 
   useEffect(() => {
@@ -78,7 +78,7 @@ export function Shell({ children }: { children: ReactNode }) {
             </Link>
           </div>
 
-          {activeTool !== 'domain' && (
+          {activeTopLevel !== 'domain' && (
             <label className="network-select-wrap">
               <select
                 className="network-select"
@@ -114,19 +114,49 @@ export function Shell({ children }: { children: ReactNode }) {
           {NAV.map((item) => (
             <Link
               key={item.id}
-              href={localePath(lang, TOOL_PATHS[item.id])}
-              className={activeTool === item.id ? 'active' : ''}
+              href={localePath(lang, item.path)}
+              className={activeTopLevel === item.id ? 'active' : ''}
             >
               {t(item.label)}
             </Link>
           ))}
         </nav>
 
+        {activeTopLevel === 'eip7702' && (
+          <nav className="tabs subtabs" aria-label={t('app.nav7702')}>
+            {EIP7702_SUB_TOOLS.map((item) => (
+              <Link
+                key={item.id}
+                href={localePath(lang, item.path)}
+                className={activeTool === item.id ? 'active' : ''}
+              >
+                {t(item.label)}
+              </Link>
+            ))}
+          </nav>
+        )}
+
         {children}
 
         <footer>
           <p>{t('app.footer1')}</p>
-          <p className="muted small">{t('app.footer2')}</p>
+          <p className="footer-meta">
+            <a
+              href="https://github.com/mhxw/tools"
+              target="_blank"
+              rel="noreferrer"
+            >
+              {t('app.footerGithub')}
+            </a>
+            <span aria-hidden="true">·</span>
+            <a
+              href="https://github.com/mhxw/tools/blob/main/LICENSE"
+              target="_blank"
+              rel="noreferrer"
+            >
+              {t('app.footerLicense')}
+            </a>
+          </p>
         </footer>
       </main>
     </div>

@@ -35,6 +35,7 @@ const zh = {
   'app.navHome': '工具箱',
   'app.navAddress': '7702 检测',
   'app.navTx': '交易解析',
+  'app.nav7702': 'EIP-7702',
   'app.navDomain': '域名检查',
   'app.navGuide': '撤销指南',
   'app.explainerTitle': 'EIP-7702 是什么？',
@@ -48,8 +49,11 @@ const zh = {
   'app.explainer3Body':
     '对 `address = 0x0` 的授权签名后，发送一笔 type-4 交易。协议会把该账户的代码哈希重置为空，从而清除委托。MetaMask 等智能账户也可以在钱包内关闭。',
   'app.footer1':
-    '本工具不托管资产、不上传私钥。私钥模式存在固有风险，请自行审计源码并在可信环境中使用。',
-  'app.footer2': '委托合约识别仅覆盖已知实现，未识别的地址请自行核对源码。',
+    '本工具不托管资产、不上传私钥。请自行审计源码并在可信环境中使用。',
+  'app.footerGithub': 'GitHub 仓库',
+  'app.footerLicense': '开源 · MIT License',
+  'app.delegateDisclaimer':
+    '委托合约识别仅覆盖已知实现，未识别的地址请自行核对源码。',
 
   'home.eyebrow': 'Toolbox',
   'home.title1': '一个链上工具箱，',
@@ -70,6 +74,10 @@ const zh = {
     '检查 ERC-20 / NFT 的 approve 授权额度，识别高风险授权并引导撤销。',
 
   'tool.addressTitle': 'EIP-7702 授权检测',
+  'tool.eip7702Title': 'EIP-7702',
+  'tool.eip7702Desc':
+    '多链检测地址是否开启 7702、解析交易，并提供撤销指南。',
+  'tool.eip7702Tag': '检测 · 解析 · 撤销',
   'tool.addressDesc':
     '输入地址后并行扫描 Ethereum、BSC、Base、Arbitrum、Optimism、Polygon、Monad，识别委托合约，并可切换网络撤销。',
   'tool.addressTag': '多链扫描 · 支持撤销',
@@ -88,7 +96,7 @@ const zh = {
   'domain.eyebrow': '域名安全',
   'domain.title': '这个域名安全吗？',
   'domain.placeholder': 'example.com',
-  'domain.dkimPlaceholder': 'DKIM selector（可选，如 google）',
+  'domain.dkimPlaceholder': 'DKIM selector（可选，如 google / selector1）',
   'domain.check': '检查',
   'domain.checkingShort': '检查中...',
   'domain.checking': '正在检查 DNS、邮件认证、DNSSEC 和注册信息...',
@@ -96,6 +104,8 @@ const zh = {
   'domain.error': '检查失败：{message}',
   'domain.inputHint':
     '检查 DNS、DNSSEC、CAA、SPF、DMARC、DKIM 和域名注册信息。',
+  'domain.dkimHint':
+    'DKIM selector 是 DKIM 记录的标签，例如 Google 常用 google，Microsoft 365 常用 selector1 / selector2。留空会尝试常见 selector。',
   'domain.privacy':
     '域名会发送到 Google / Cloudflare 的 DoH、RDAP 公共接口；无 RDAP 时回退到 whois.vu。不需要 API Key。',
   'domain.resultFor': '检查结果',
@@ -166,8 +176,26 @@ const zh = {
   'domain.riskExpiringSoon': '域名将在 {days} 天内到期',
   'domain.riskExpiring': '域名将在 {days} 天内到期，建议尽快续费',
   'domain.sectionDns': 'DNS 记录',
+  'domain.sectionSubdomains': '子域名',
+  'domain.subdomainHint':
+    '通过公开证书/主机数据查询该域名下出现过的子域名。',
+  'domain.subdomainQuery': '查询子域名',
+  'domain.subdomainRefresh': '重新查询',
+  'domain.subdomainLoading': '查询中...',
+  'domain.subdomainCount': '发现 {count} 个子域名',
+  'domain.subdomainNone': '没有发现公开记录的子域名。',
+  'domain.subdomainLimit': '只显示前 {count} 个。',
+  'domain.subdomainError': '子域名查询失败：{message}',
+  'domain.subdomainCrtSh': '在 crt.sh 查看完整结果',
+  'domain.subdomainPrivacy':
+    '子域名查询会发送到 HackerTarget；免费接口每天约 50 次。',
   'domain.sectionEmail': '邮件认证',
   'domain.sectionDnssec': 'DNSSEC 与 CAA',
+  'domain.dnssecCaaTitle': 'DNSSEC 和 CAA 是什么？',
+  'domain.dnssecExplain':
+    '给 DNS 记录加上密码学签名，防止解析结果在传输过程中被篡改或缓存投毒。未启用时网站仍可访问，但抗 DNS 劫持能力较弱。',
+  'domain.caaExplain':
+    '限制哪些证书颁发机构（CA）可以为该域名签发证书，降低误签或恶意签发的风险。没有 CAA 不代表已经被攻击，但任何 CA 都可以申请该域名的证书。',
   'domain.sectionRdap': '域名注册信息',
   'domain.sectionHomograph': '同形异义检查',
   'domain.recordA': 'A 记录',
@@ -195,6 +223,28 @@ const zh = {
   'domain.rdapUnavailable': '未获取到 RDAP / WHOIS 信息',
   'domain.registryLockHint':
     'Registry Lock 无法从公开 RDAP 可靠判断，需要到注册商后台人工确认。',
+  'domain.guides': '配置指南',
+  'domain.guideHint': '根据 MX / SPF 识别到：{providers}',
+  'domain.guideUnknown':
+    '未识别到邮件服务商，下面是各服务商的官方配置指南。',
+  'domain.allGuides': '查看其他服务商指南',
+  'domain.providerGoogle': 'Google Workspace',
+  'domain.providerAws': 'Amazon SES',
+  'domain.providerMicrosoft': 'Microsoft 365',
+  'domain.providerCloudflare': 'Cloudflare',
+  'domain.guideGoogleSpf': 'SPF 设置',
+  'domain.guideGoogleDkim': 'DKIM 设置',
+  'domain.guideGoogleDmarc': 'DMARC 设置',
+  'domain.guideGoogleOverview': '防仿冒总览',
+  'domain.guideAwsOverview': '邮箱认证总览',
+  'domain.guideAwsDkim': 'Easy DKIM',
+  'domain.guideAwsMailFrom': 'Custom MAIL FROM',
+  'domain.guideAwsDmarc': 'DMARC 合规',
+  'domain.guideMicrosoftDmarc': 'DMARC 配置',
+  'domain.guideMicrosoftOverview': '邮箱认证总览',
+  'domain.guideCloudflareDmarc': 'DMARC Management',
+  'domain.guideCloudflareRecords': '安全记录',
+  'domain.guideCloudflarePostmaster': 'Email Routing 认证',
   'domain.noHomograph': '未发现明显的 punycode、混合脚本或隐藏字符。',
   'domain.nxdomainTitle': '域名无法解析',
   'domain.nxdomainBody': '请确认域名拼写，或该域名尚未注册。',
@@ -399,6 +449,7 @@ const en: Record<MessageKey, string> = {
   'app.navHome': 'Toolbox',
   'app.navAddress': '7702 checker',
   'app.navTx': 'Tx inspector',
+  'app.nav7702': 'EIP-7702',
   'app.navDomain': 'Domain check',
   'app.navGuide': 'Revoke guide',
   'app.explainerTitle': 'What is EIP-7702?',
@@ -412,8 +463,10 @@ const en: Record<MessageKey, string> = {
   'app.explainer3Body':
     'Sign an authorization with `address = 0x0` and send a type-4 transaction. The protocol resets the account code hash to empty. Smart-account wallets such as MetaMask can also disable the delegation in-app.',
   'app.footer1':
-    'This tool never custodies assets or uploads private keys. Private-key mode has inherent risks; audit the source and use it in a trusted environment.',
-  'app.footer2':
+    'This tool never custodies assets or uploads private keys. Audit the source and use it in a trusted environment.',
+  'app.footerGithub': 'GitHub repo',
+  'app.footerLicense': 'Open source · MIT License',
+  'app.delegateDisclaimer':
     'Delegate recognition only covers known implementations. Verify unknown contracts yourself.',
 
   'home.eyebrow': 'Toolbox',
@@ -435,6 +488,10 @@ const en: Record<MessageKey, string> = {
     'Inspect ERC-20 / NFT approve allowances, spot risky approvals and guide users to revoke them.',
 
   'tool.addressTitle': 'EIP-7702 delegation checker',
+  'tool.eip7702Title': 'EIP-7702',
+  'tool.eip7702Desc':
+    'Multi-chain delegation checker, transaction inspector and revoke guide.',
+  'tool.eip7702Tag': 'Check · inspect · revoke',
   'tool.addressDesc':
     'Scan Ethereum, BSC, Base, Arbitrum, Optimism, Polygon and Monad in parallel, identify delegate contracts, and revoke per network.',
   'tool.addressTag': 'Multi-chain scan · revoke',
@@ -454,7 +511,7 @@ const en: Record<MessageKey, string> = {
   'domain.eyebrow': 'Domain security',
   'domain.title': 'Is this domain safe?',
   'domain.placeholder': 'example.com',
-  'domain.dkimPlaceholder': 'DKIM selector (optional, e.g. google)',
+  'domain.dkimPlaceholder': 'DKIM selector (optional, e.g. google / selector1)',
   'domain.check': 'Check',
   'domain.checkingShort': 'Checking...',
   'domain.checking': 'Checking DNS, email authentication, DNSSEC and registration...',
@@ -462,6 +519,8 @@ const en: Record<MessageKey, string> = {
   'domain.error': 'Check failed: {message}',
   'domain.inputHint':
     'Checks DNS, DNSSEC, CAA, SPF, DMARC, DKIM and registration data.',
+  'domain.dkimHint':
+    'A DKIM selector is the label of a DKIM record, e.g. google for Google Workspace, selector1 / selector2 for Microsoft 365. Leave empty to try common selectors.',
   'domain.privacy':
     'The domain is sent to Google / Cloudflare DoH, public RDAP APIs, and whois.vu when RDAP is unavailable. No API key required.',
   'domain.resultFor': 'Result',
@@ -545,8 +604,26 @@ const en: Record<MessageKey, string> = {
   'domain.riskExpiringSoon': 'Domain expires in {days} days',
   'domain.riskExpiring': 'Domain expires in {days} days; renew soon',
   'domain.sectionDns': 'DNS records',
+  'domain.sectionSubdomains': 'Subdomains',
+  'domain.subdomainHint':
+    'Find subdomains seen in public certificate and host data.',
+  'domain.subdomainQuery': 'Find subdomains',
+  'domain.subdomainRefresh': 'Search again',
+  'domain.subdomainLoading': 'Searching...',
+  'domain.subdomainCount': '{count} subdomains found',
+  'domain.subdomainNone': 'No public subdomains found.',
+  'domain.subdomainLimit': 'Showing the first {count}.',
+  'domain.subdomainError': 'Subdomain lookup failed: {message}',
+  'domain.subdomainCrtSh': 'View full results on crt.sh',
+  'domain.subdomainPrivacy':
+    'Subdomain lookup sends the domain to HackerTarget; the free endpoint allows about 50 requests/day.',
   'domain.sectionEmail': 'Email authentication',
   'domain.sectionDnssec': 'DNSSEC and CAA',
+  'domain.dnssecCaaTitle': 'What are DNSSEC and CAA?',
+  'domain.dnssecExplain':
+    'Adds cryptographic signatures to DNS records so responses cannot be silently tampered with or cache-poisoned. The site still works without it, but DNS hijacking protection is weaker.',
+  'domain.caaExplain':
+    'Restricts which certificate authorities may issue certificates for the domain, reducing mis-issuance risk. No CAA does not mean compromise, but any CA can request a certificate.',
   'domain.sectionRdap': 'Registration data',
   'domain.sectionHomograph': 'Homograph check',
   'domain.recordA': 'A records',
@@ -574,6 +651,28 @@ const en: Record<MessageKey, string> = {
   'domain.rdapUnavailable': 'No RDAP / WHOIS data found',
   'domain.registryLockHint':
     'Registry Lock cannot be reliably detected from public RDAP; verify it in the registrar dashboard.',
+  'domain.guides': 'Setup guides',
+  'domain.guideHint': 'Detected from MX / SPF: {providers}',
+  'domain.guideUnknown':
+    'No email provider detected. Official guides for common providers are below.',
+  'domain.allGuides': 'Other provider guides',
+  'domain.providerGoogle': 'Google Workspace',
+  'domain.providerAws': 'Amazon SES',
+  'domain.providerMicrosoft': 'Microsoft 365',
+  'domain.providerCloudflare': 'Cloudflare',
+  'domain.guideGoogleSpf': 'Set up SPF',
+  'domain.guideGoogleDkim': 'Set up DKIM',
+  'domain.guideGoogleDmarc': 'Set up DMARC',
+  'domain.guideGoogleOverview': 'Anti-spoofing overview',
+  'domain.guideAwsOverview': 'Email authentication overview',
+  'domain.guideAwsDkim': 'Easy DKIM',
+  'domain.guideAwsMailFrom': 'Custom MAIL FROM',
+  'domain.guideAwsDmarc': 'DMARC compliance',
+  'domain.guideMicrosoftDmarc': 'Configure DMARC',
+  'domain.guideMicrosoftOverview': 'Email authentication overview',
+  'domain.guideCloudflareDmarc': 'DMARC Management',
+  'domain.guideCloudflareRecords': 'Security records',
+  'domain.guideCloudflarePostmaster': 'Email Routing postmaster',
   'domain.noHomograph':
     'No obvious punycode, mixed-script or hidden characters found.',
   'domain.nxdomainTitle': 'Domain cannot be resolved',

@@ -768,6 +768,9 @@ export function AddressChecker({
           )}
         </div>
       )}
+      <p className="muted small panel-note">
+        {t('app.delegateDisclaimer')}
+      </p>
     </section>
   )
 }

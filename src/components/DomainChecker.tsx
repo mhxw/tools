@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useI18n, type MessageKey } from '@/i18n'
 import {
   checkDomain,
+  fetchSubdomains,
   type CaaRecord,
   type DomainReport,
   type MxRecord,
@@ -177,6 +178,155 @@ const DMARC_KEY: Record<string, MessageKey> = {
   none: 'domain.dmarcNone',
 }
 
+type GuideProvider = 'google' | 'aws' | 'microsoft' | 'cloudflare'
+
+type GuideLink = {
+  label: MessageKey
+  url: string
+}
+
+const PROVIDER_GUIDES: Record<
+  GuideProvider,
+  { name: MessageKey; links: GuideLink[] }
+> = {
+  google: {
+    name: 'domain.providerGoogle',
+    links: [
+      {
+        label: 'domain.guideGoogleSpf',
+        url: 'https://knowledge.workspace.google.com/admin/security/set-up-spf',
+      },
+      {
+        label: 'domain.guideGoogleDkim',
+        url: 'https://knowledge.workspace.google.com/admin/security/set-up-dkim',
+      },
+      {
+        label: 'domain.guideGoogleDmarc',
+        url: 'https://knowledge.workspace.google.com/admin/security/set-up-dmarc',
+      },
+      {
+        label: 'domain.guideGoogleOverview',
+        url: 'https://support.google.com/a/answer/174124',
+      },
+    ],
+  },
+  aws: {
+    name: 'domain.providerAws',
+    links: [
+      {
+        label: 'domain.guideAwsOverview',
+        url: 'https://docs.aws.amazon.com/ses/latest/dg/email-authentication-methods.html',
+      },
+      {
+        label: 'domain.guideAwsDkim',
+        url: 'https://docs.aws.amazon.com/ses/latest/dg/send-email-authentication-dkim-easy.html',
+      },
+      {
+        label: 'domain.guideAwsMailFrom',
+        url: 'https://docs.aws.amazon.com/ses/latest/dg/mail-from.html',
+      },
+      {
+        label: 'domain.guideAwsDmarc',
+        url: 'https://docs.aws.amazon.com/ses/latest/dg/send-email-authentication-dmarc.html',
+      },
+    ],
+  },
+  microsoft: {
+    name: 'domain.providerMicrosoft',
+    links: [
+      {
+        label: 'domain.guideMicrosoftDmarc',
+        url: 'https://learn.microsoft.com/en-us/defender-office-365/email-authentication-dmarc-configure',
+      },
+      {
+        label: 'domain.guideMicrosoftOverview',
+        url: 'https://learn.microsoft.com/en-us/defender-office-365/email-authentication-about',
+      },
+    ],
+  },
+  cloudflare: {
+    name: 'domain.providerCloudflare',
+    links: [
+      {
+        label: 'domain.guideCloudflareDmarc',
+        url: 'https://developers.cloudflare.com/dmarc-management/',
+      },
+      {
+        label: 'domain.guideCloudflareRecords',
+        url: 'https://developers.cloudflare.com/dmarc-management/security-records/',
+      },
+      {
+        label: 'domain.guideCloudflarePostmaster',
+        url: 'https://developers.cloudflare.com/email-routing/postmaster/',
+      },
+    ],
+  },
+}
+
+function detectProviders(report: DomainReport): GuideProvider[] {
+  const mxHosts = report.mx.map((record) => record.host.toLowerCase())
+  const nsHosts = report.ns.map((host) => host.toLowerCase())
+  const spf = report.spf?.toLowerCase() ?? ''
+  const providers: GuideProvider[] = []
+
+  const add = (provider: GuideProvider) => {
+    if (!providers.includes(provider)) providers.push(provider)
+  }
+
+  if (
+    mxHosts.some(
+      (host) => host.endsWith('.google.com') || host.endsWith('.googlemail.com'),
+    )
+  ) {
+    add('google')
+  }
+  if (
+    mxHosts.some(
+      (host) =>
+        host.endsWith('.outlook.com') ||
+        host.includes('protection.outlook.com'),
+    )
+  ) {
+    add('microsoft')
+  }
+  if (
+    mxHosts.some((host) => host.includes('amazonaws.com')) ||
+    spf.includes('amazonses.com')
+  ) {
+    add('aws')
+  }
+  if (
+    mxHosts.some((host) => host.endsWith('.cloudflare.net')) ||
+    nsHosts.some((host) => host.endsWith('.cloudflare.com'))
+  ) {
+    add('cloudflare')
+  }
+
+  return providers
+}
+
+function ProviderGuideCard({
+  provider,
+  t,
+}: {
+  provider: GuideProvider
+  t: (key: MessageKey, vars?: Record<string, string | number>) => string
+}) {
+  const guide = PROVIDER_GUIDES[provider]
+  return (
+    <article className="domain-guide-card">
+      <h4>{t(guide.name)}</h4>
+      <div className="domain-guide-links">
+        {guide.links.map((link) => (
+          <a key={link.url} href={link.url} target="_blank" rel="noreferrer">
+            {t(link.label)} ↗
+          </a>
+        ))}
+      </div>
+    </article>
+  )
+}
+
 function Stat({
   label,
   value,
@@ -262,6 +412,9 @@ export function DomainChecker({
   const [report, setReport] = useState<DomainReport>()
   const [error, setError] = useState<string>()
   const [loading, setLoading] = useState(false)
+  const [subdomains, setSubdomains] = useState<string[]>()
+  const [subLoading, setSubLoading] = useState(false)
+  const [subError, setSubError] = useState<string>()
   const autoRan = useRef(false)
 
   const runCheck = useCallback(
@@ -269,6 +422,8 @@ export function DomainChecker({
       setLoading(true)
       setError(undefined)
       setReport(undefined)
+      setSubdomains(undefined)
+      setSubError(undefined)
 
       try {
         const result = await checkDomain(value, selector)
@@ -300,7 +455,26 @@ export function DomainChecker({
     void runCheck(input, dkimSelector)
   }
 
+  async function handleSubdomains() {
+    if (!report) return
+
+    setSubLoading(true)
+    setSubError(undefined)
+    try {
+      setSubdomains(await fetchSubdomains(report.domain))
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      setSubError(t('domain.subdomainError', { message }))
+    } finally {
+      setSubLoading(false)
+    }
+  }
+
   const risks = report ? buildRisks(report, t) : []
+  const providers = report ? detectProviders(report) : []
+  const otherProviders = (
+    Object.keys(PROVIDER_GUIDES) as GuideProvider[]
+  ).filter((provider) => !providers.includes(provider))
   const dnsValue = report
     ? report.nxdomain
       ? t('domain.nxdomainTitle')
@@ -328,6 +502,8 @@ export function DomainChecker({
             setInput(value)
             onInputDomain(value)
             setError(undefined)
+            setSubdomains(undefined)
+            setSubError(undefined)
             if (report && value.trim().toLowerCase() !== report.domain) {
               setReport(undefined)
             }
@@ -361,6 +537,7 @@ export function DomainChecker({
       </div>
 
       <p className="muted small domain-hint">{t('domain.inputHint')}</p>
+      <p className="muted small">{t('domain.dkimHint')}</p>
       <p className="muted small">{t('domain.privacy')}</p>
 
       {error && <p className="notice notice-error">{error}</p>}
@@ -530,6 +707,65 @@ export function DomainChecker({
               </div>
 
               <div className="domain-section">
+                <h3>{t('domain.sectionSubdomains')}</h3>
+                <p className="muted small">{t('domain.subdomainHint')}</p>
+                <div className="actions">
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    type="button"
+                    onClick={handleSubdomains}
+                    disabled={subLoading}
+                  >
+                    {subLoading
+                      ? t('domain.subdomainLoading')
+                      : subdomains
+                        ? t('domain.subdomainRefresh')
+                        : t('domain.subdomainQuery')}
+                  </button>
+                  <a
+                    className="inline-link"
+                    href={`https://crt.sh/?q=%25.${report.domain}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {t('domain.subdomainCrtSh')}
+                  </a>
+                </div>
+
+                {subError && (
+                  <p className="notice notice-error">{subError}</p>
+                )}
+
+                {subdomains && (
+                  <>
+                    <p className="muted small">
+                      {t('domain.subdomainCount', {
+                        count: subdomains.length,
+                      })}
+                    </p>
+                    {subdomains.length ? (
+                      <div className="record-list subdomain-list">
+                        {subdomains.slice(0, 200).map((host) => (
+                          <code key={host}>{host}</code>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="muted">{t('domain.subdomainNone')}</p>
+                    )}
+                    {subdomains.length > 200 && (
+                      <p className="muted small">
+                        {t('domain.subdomainLimit', { count: 200 })}
+                      </p>
+                    )}
+                  </>
+                )}
+
+                <p className="muted small subdomain-privacy">
+                  {t('domain.subdomainPrivacy')}
+                </p>
+              </div>
+
+              <div className="domain-section">
                 <h3>{t('domain.sectionEmail')}</h3>
                 <dl className="kv">
                   <div>
@@ -621,7 +857,68 @@ export function DomainChecker({
               </div>
 
               <div className="domain-section">
+                <h3>{t('domain.guides')}</h3>
+                {providers.length > 0 ? (
+                  <>
+                    <p className="muted small">
+                      {t('domain.guideHint', {
+                        providers: providers
+                          .map((provider) =>
+                            t(PROVIDER_GUIDES[provider].name),
+                          )
+                          .join(' · '),
+                      })}
+                    </p>
+                    <div className="domain-guide-grid">
+                      {providers.map((provider) => (
+                        <ProviderGuideCard
+                          key={provider}
+                          provider={provider}
+                          t={t}
+                        />
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <p className="muted small">{t('domain.guideUnknown')}</p>
+                )}
+
+                {otherProviders.length > 0 && (
+                  <details className="domain-guide-all">
+                    <summary>{t('domain.allGuides')}</summary>
+                    <div className="domain-guide-grid">
+                      {otherProviders.map((provider) => (
+                        <ProviderGuideCard
+                          key={provider}
+                          provider={provider}
+                          t={t}
+                        />
+                      ))}
+                    </div>
+                  </details>
+                )}
+              </div>
+
+              <div className="domain-section">
                 <h3>{t('domain.sectionDnssec')}</h3>
+                <details className="domain-concept">
+                  <summary>
+                    <span className="domain-concept-icon" aria-hidden="true">
+                      !
+                    </span>
+                    <strong>{t('domain.dnssecCaaTitle')}</strong>
+                  </summary>
+                  <div className="domain-concept-body">
+                    <p>
+                      <b>DNSSEC：</b>
+                      {t('domain.dnssecExplain')}
+                    </p>
+                    <p>
+                      <b>CAA：</b>
+                      {t('domain.caaExplain')}
+                    </p>
+                  </div>
+                </details>
                 <dl className="kv">
                   <div>
                     <dt>{t('domain.summaryDnssec')}</dt>

@@ -15,3 +15,7 @@ pnpm build  # static site in out/
 ```
 
 Source code lives on `main`; the built site lives on `page`.
+
+## License
+
+MIT © 2026 MHXW

@@ -615,3 +615,43 @@ export async function checkDomain(
     queryErrors,
   }
 }
+
+/**
+ * Look up known subdomains through HackerTarget's public hostsearch API.
+ * It is free, CORS-enabled, and rate-limited (about 50 requests/day/IP).
+ */
+export async function fetchSubdomains(domain: string): Promise<string[]> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 12_000)
+
+  try {
+    const response = await fetch(
+      `https://api.hackertarget.com/hostsearch/?q=${encodeURIComponent(domain)}`,
+      { signal: controller.signal },
+    )
+    if (!response.ok) throw new Error(`HTTP ${response.status}`)
+
+    const text = (await response.text()).trim()
+    const hosts = text
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line.includes(','))
+      .map((line) => line.split(',')[0]?.trim().toLowerCase())
+      .filter((host): host is string => Boolean(host))
+
+    if (hosts.length === 0) {
+      if (/no dns|not found/i.test(text)) return []
+      throw new Error(text.slice(0, 160) || 'empty response')
+    }
+
+    const apex = domain.toLowerCase()
+    const suffix = `.${apex}`
+    return [
+      ...new Set(
+        hosts.filter((host) => host === apex || host.endsWith(suffix)),
+      ),
+    ].sort()
+  } finally {
+    clearTimeout(timer)
+  }
+}
