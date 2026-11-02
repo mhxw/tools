@@ -1,6 +1,6 @@
 import type { Language, MessageKey } from './i18n'
 
-export type ToolId = 'home' | 'address' | 'tx' | 'guide'
+export type ToolId = 'home' | 'address' | 'tx' | 'domain' | 'guide'
 export type ReadyToolId = Exclude<ToolId, 'home'>
 
 type ToolBase = {
@@ -44,6 +44,14 @@ export const TOOLS: ToolDefinition[] = [
     tag: 'tool.txTag',
   },
   {
+    id: 'domain',
+    status: 'ready',
+    icon: 'DNS',
+    title: 'tool.domainTitle',
+    description: 'tool.domainDesc',
+    tag: 'tool.domainTag',
+  },
+  {
     id: 'guide',
     status: 'ready',
     icon: 'MM',
@@ -65,6 +73,7 @@ export const TOOL_PATHS: Record<ToolId, string> = {
   home: '/',
   address: '/eip7702',
   tx: '/eip7702/tx',
+  domain: '/domain',
   guide: '/eip7702/metamask',
 }
 
@@ -74,6 +83,7 @@ export function toolFromPath(pathname: string): ToolId {
   if (path === '/eip7702/tx') return 'tx'
   if (path === '/eip7702/metamask') return 'guide'
   if (path === '/eip7702') return 'address'
+  if (path === '/domain') return 'domain'
   return 'home'
 }
 

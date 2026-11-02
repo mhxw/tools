@@ -22,6 +22,7 @@ const NAV: Array<{ id: ToolId; label: MessageKey }> = [
   { id: 'home', label: 'app.navHome' },
   { id: 'address', label: 'app.navAddress' },
   { id: 'tx', label: 'app.navTx' },
+  { id: 'domain', label: 'app.navDomain' },
   { id: 'guide', label: 'app.navGuide' },
 ]
 
@@ -77,32 +78,34 @@ export function Shell({ children }: { children: ReactNode }) {
             </Link>
           </div>
 
-          <label className="network-select-wrap">
-            <select
-              className="network-select"
-              value={chainId}
-              aria-label={t('app.network')}
-              onChange={(event) => setChainId(Number(event.target.value))}
-            >
-              <optgroup label={t('app.mainnets')}>
-                {MAINNET_CHAIN_META.map((chain) => (
-                  <option key={chain.id} value={chain.id}>
-                    {chainName(chain.id)}
-                  </option>
-                ))}
-              </optgroup>
-              <optgroup label={t('app.testnets')}>
-                {TESTNET_CHAIN_META.map((chain) => (
-                  <option key={chain.id} value={chain.id}>
-                    {chainName(chain.id)}
-                  </option>
-                ))}
-              </optgroup>
-            </select>
-            <span className="network-caret" aria-hidden="true">
-              ▾
-            </span>
-          </label>
+          {activeTool !== 'domain' && (
+            <label className="network-select-wrap">
+              <select
+                className="network-select"
+                value={chainId}
+                aria-label={t('app.network')}
+                onChange={(event) => setChainId(Number(event.target.value))}
+              >
+                <optgroup label={t('app.mainnets')}>
+                  {MAINNET_CHAIN_META.map((chain) => (
+                    <option key={chain.id} value={chain.id}>
+                      {chainName(chain.id)}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label={t('app.testnets')}>
+                  {TESTNET_CHAIN_META.map((chain) => (
+                    <option key={chain.id} value={chain.id}>
+                      {chainName(chain.id)}
+                    </option>
+                  ))}
+                </optgroup>
+              </select>
+              <span className="network-caret" aria-hidden="true">
+                ▾
+              </span>
+            </label>
+          )}
         </div>
       </header>
 

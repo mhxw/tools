@@ -5,12 +5,13 @@ export const SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL ?? 'https://mhxw.github.io/tools'
 ).replace(/\/+$/, '')
 
-export type SeoPage = 'home' | 'address' | 'tx' | 'guide'
+export type SeoPage = 'home' | 'address' | 'tx' | 'domain' | 'guide'
 
 const PATHS: Record<SeoPage, string> = {
   home: '/',
   address: '/eip7702',
   tx: '/eip7702/tx',
+  domain: '/domain',
   guide: '/eip7702/metamask',
 }
 
@@ -36,6 +37,11 @@ const COPY: Record<Language, Record<SeoPage, Copy>> = {
       description:
         'Inspect EIP-7702 type-4 transactions: authorization lists, signers, delegate addresses and nonces.',
     },
+    domain: {
+      title: 'Domain Security Check (DNS, DNSSEC, SPF, DMARC)',
+      description:
+        'Check a domain for DNS records, DNSSEC, CAA, SPF, DMARC, DKIM, homograph tricks and RDAP registration data.',
+    },
     guide: {
       title: 'Cancel EIP-7702 Authorization in MetaMask',
       description:
@@ -57,6 +63,11 @@ const COPY: Record<Language, Record<SeoPage, Copy>> = {
       title: 'EIP-7702 交易解析',
       description:
         '解析 EIP-7702 type-4 交易，展示授权列表、签名账户、委托地址与 nonce。',
+    },
+    domain: {
+      title: '域名安全检查（DNS / DNSSEC / SPF / DMARC）',
+      description:
+        '检查域名的 DNS、DNSSEC、CAA、SPF、DMARC、DKIM、同形异义风险与 RDAP 注册信息。',
     },
     guide: {
       title: '在 MetaMask 中取消 EIP-7702 授权',

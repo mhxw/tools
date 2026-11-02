@@ -1,6 +1,6 @@
 # Tools
 
-A small static toolbox for on-chain utilities. The first tool scans EIP-7702 delegation across Ethereum, BSC, Base, Arbitrum, Optimism, Polygon and Monad, and helps revoke it.
+A small static toolbox for on-chain utilities: multi-chain EIP-7702 checks, transaction inspection, and domain security checks (DNS, DNSSEC, SPF, DMARC).
 
 English lives at `/`; Chinese lives at `/zh/`.
 
