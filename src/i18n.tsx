@@ -97,7 +97,7 @@ const zh = {
   'domain.inputHint':
     '检查 DNS、DNSSEC、CAA、SPF、DMARC、DKIM 和域名注册信息。',
   'domain.privacy':
-    '域名会发送到 Google / Cloudflare 的 DoH 和 RDAP 公共接口，不需要 API Key。',
+    '域名会发送到 Google / Cloudflare 的 DoH、RDAP 公共接口；无 RDAP 时回退到 whois.vu。不需要 API Key。',
   'domain.resultFor': '检查结果',
   'domain.summaryDns': 'DNS',
   'domain.summaryDnssec': 'DNSSEC',
@@ -182,12 +182,15 @@ const zh = {
   'domain.tlsRpt': 'TLS-RPT',
   'domain.bimi': 'BIMI',
   'domain.registrar': '注册商',
+  'domain.source': '来源',
+  'domain.rdapSource': 'RDAP',
+  'domain.whoisSource': 'WHOIS（RDAP 不可用）',
   'domain.created': '注册时间',
   'domain.expires': '到期时间',
   'domain.age': '域名年龄',
   'domain.ageDays': '{days} 天',
   'domain.status': '状态',
-  'domain.rdapUnavailable': '未获取到 RDAP 信息（该 TLD 可能不支持）',
+  'domain.rdapUnavailable': '未获取到 RDAP / WHOIS 信息',
   'domain.registryLockHint':
     'Registry Lock 无法从公开 RDAP 可靠判断，需要到注册商后台人工确认。',
   'domain.noHomograph': '未发现明显的 punycode、混合脚本或隐藏字符。',
@@ -458,7 +461,7 @@ const en: Record<MessageKey, string> = {
   'domain.inputHint':
     'Checks DNS, DNSSEC, CAA, SPF, DMARC, DKIM and registration data.',
   'domain.privacy':
-    'The domain is sent to Google / Cloudflare DoH and public RDAP APIs. No API key required.',
+    'The domain is sent to Google / Cloudflare DoH, public RDAP APIs, and whois.vu when RDAP is unavailable. No API key required.',
   'domain.resultFor': 'Result',
   'domain.summaryDns': 'DNS',
   'domain.summaryDnssec': 'DNSSEC',
@@ -556,12 +559,15 @@ const en: Record<MessageKey, string> = {
   'domain.tlsRpt': 'TLS-RPT',
   'domain.bimi': 'BIMI',
   'domain.registrar': 'Registrar',
+  'domain.source': 'Source',
+  'domain.rdapSource': 'RDAP',
+  'domain.whoisSource': 'WHOIS (RDAP unavailable)',
   'domain.created': 'Created',
   'domain.expires': 'Expires',
   'domain.age': 'Domain age',
   'domain.ageDays': '{days} days',
   'domain.status': 'Status',
-  'domain.rdapUnavailable': 'No RDAP data (this TLD may not be supported)',
+  'domain.rdapUnavailable': 'No RDAP / WHOIS data found',
   'domain.registryLockHint':
     'Registry Lock cannot be reliably detected from public RDAP; verify it in the registrar dashboard.',
   'domain.noHomograph':

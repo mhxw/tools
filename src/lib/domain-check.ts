@@ -23,6 +23,7 @@ export type RdapInfo = {
   ageDays?: number
   expiresDays?: number
   statuses: string[]
+  source?: 'rdap' | 'whois'
 }
 
 export type DomainReport = {
@@ -259,12 +260,125 @@ async function fetchRdap(domain: string): Promise<RdapInfo | undefined> {
       ageDays,
       expiresDays,
       statuses: data.status ?? [],
+      source: 'rdap',
     }
   } catch {
     return undefined
   } finally {
     clearTimeout(timer)
   }
+}
+
+type WhoisVuResponse = {
+  available?: string
+  created?: number
+  expires?: number
+  statuses?: string[]
+  whois?: string
+}
+
+type RdapBootstrap = {
+  services?: Array<[string[], string[]]>
+}
+
+let rdapTldsPromise: Promise<Set<string>> | undefined
+
+function getRdapTlds() {
+  if (!rdapTldsPromise) {
+    rdapTldsPromise = (async () => {
+      const controller = new AbortController()
+      const timer = setTimeout(() => controller.abort(), 8_000)
+      try {
+        const response = await fetch('https://data.iana.org/rdap/dns.json', {
+          signal: controller.signal,
+        })
+        if (!response.ok) throw new Error(`HTTP ${response.status}`)
+        const data = (await response.json()) as RdapBootstrap
+        return new Set(
+          (data.services ?? []).flatMap(([tlds]) =>
+            tlds.map((tld) => tld.toLowerCase()),
+          ),
+        )
+      } finally {
+        clearTimeout(timer)
+      }
+    })().catch((error) => {
+      rdapTldsPromise = undefined
+      throw error
+    })
+  }
+  return rdapTldsPromise
+}
+
+async function fetchWhois(domain: string): Promise<RdapInfo | undefined> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 10_000)
+
+  try {
+    const response = await fetch(
+      `https://api.whois.vu/?q=${encodeURIComponent(domain)}`,
+      { signal: controller.signal },
+    )
+    if (!response.ok) return undefined
+
+    const data = (await response.json()) as WhoisVuResponse
+    if (data.available === 'yes') return undefined
+
+    const createdAt =
+      typeof data.created === 'number' && data.created > 0
+        ? new Date(data.created * 1_000).toISOString()
+        : undefined
+    const expiresAt =
+      typeof data.expires === 'number' && data.expires > 0
+        ? new Date(data.expires * 1_000).toISOString()
+        : undefined
+    const createdTime = createdAt ? Date.parse(createdAt) : Number.NaN
+    const ageDays = Number.isFinite(createdTime)
+      ? Math.max(0, Math.floor((Date.now() - createdTime) / 86_400_000))
+      : undefined
+    const expiresTime = expiresAt ? Date.parse(expiresAt) : Number.NaN
+    const expiresDays = Number.isFinite(expiresTime)
+      ? Math.floor((expiresTime - Date.now()) / 86_400_000)
+      : undefined
+
+    const whois = data.whois ?? ''
+    const registrar = whois
+      .match(/^Registrar:\s*(.+)$/m)?.[1]
+      ?.trim()
+
+    return {
+      registrar,
+      createdAt,
+      expiresAt,
+      ageDays,
+      expiresDays,
+      statuses: data.statuses ?? [],
+      source: 'whois',
+    }
+  } catch {
+    return undefined
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+async function fetchRegistration(domain: string) {
+  const tld = `.${domain.split('.').pop()?.toLowerCase() ?? ''}`
+  let supportsRdap = true
+
+  try {
+    const tlds = await getRdapTlds()
+    supportsRdap = tlds.has(tld)
+  } catch {
+    // If the bootstrap lookup fails, still try RDAP and fall back to WHOIS.
+  }
+
+  if (supportsRdap) {
+    const rdap = await fetchRdap(domain)
+    if (rdap) return rdap
+  }
+
+  return fetchWhois(domain)
 }
 
 export function normalizeDomain(input: string) {
@@ -432,7 +546,7 @@ export async function checkDomain(
   if (!nxdomain) {
     const [rdapResult, dkimResult, mtaStsResult, tlsRptResult, bimiResult] =
       await Promise.all([
-        fetchRdap(domain),
+        fetchRegistration(domain),
         checkDkim(domain, selectors),
         safeDoh(`_mta-sts.${domain}`, 'TXT'),
         safeDoh(`_smtp._tls.${domain}`, 'TXT'),

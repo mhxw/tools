@@ -651,6 +651,14 @@ export function DomainChecker({
                   <>
                     <dl className="kv">
                     <div>
+                      <dt>{t('domain.source')}</dt>
+                      <dd>
+                        {report.rdap.source === 'whois'
+                          ? t('domain.whoisSource')
+                          : t('domain.rdapSource')}
+                      </dd>
+                    </div>
+                    <div>
                       <dt>{t('domain.registrar')}</dt>
                       <dd>{report.rdap.registrar ?? t('domain.unknown')}</dd>
                     </div>
