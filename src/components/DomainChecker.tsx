@@ -140,10 +140,10 @@ function buildRisks(
     if (!statuses.includes('clienttransferprohibited')) {
       risks.push({ level: 'medium', text: t('domain.riskTransferLock') })
     }
-    if (
-      !statuses.includes('clientupdateprohibited') ||
-      !statuses.includes('clientdeleteprohibited')
-    ) {
+    if (!statuses.includes('clientupdateprohibited')) {
+      risks.push({ level: 'info', text: t('domain.riskUpdateLock') })
+    }
+    if (!statuses.includes('clientdeleteprohibited')) {
       risks.push({ level: 'info', text: t('domain.riskDeleteLock') })
     }
   }

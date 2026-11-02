@@ -159,8 +159,10 @@ const zh = {
     '域名处于 pendingDelete/redemptionPeriod，可能即将删除',
   'domain.riskTransferLock':
     '未看到 clientTransferProhibited，域名可能没有开启转移锁',
+  'domain.riskUpdateLock':
+    '未看到 clientUpdateProhibited，更新锁可能未开启',
   'domain.riskDeleteLock':
-    '未看到 clientUpdateProhibited / clientDeleteProhibited，注册商锁定不完整',
+    '未看到 clientDeleteProhibited，删除锁可能未开启',
   'domain.riskExpiringSoon': '域名将在 {days} 天内到期',
   'domain.riskExpiring': '域名将在 {days} 天内到期，建议尽快续费',
   'domain.sectionDns': 'DNS 记录',
@@ -536,8 +538,10 @@ const en: Record<MessageKey, string> = {
     'Domain is pendingDelete/redemptionPeriod and may be deleted soon',
   'domain.riskTransferLock':
     'clientTransferProhibited not seen; the transfer lock may be off',
+  'domain.riskUpdateLock':
+    'clientUpdateProhibited not seen; the update lock may be off',
   'domain.riskDeleteLock':
-    'clientUpdateProhibited / clientDeleteProhibited not seen; registrar locks may be incomplete',
+    'clientDeleteProhibited not seen; the delete lock may be off',
   'domain.riskExpiringSoon': 'Domain expires in {days} days',
   'domain.riskExpiring': 'Domain expires in {days} days; renew soon',
   'domain.sectionDns': 'DNS records',
