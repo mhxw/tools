@@ -501,9 +501,9 @@ export function DomainChecker({
             const value = event.target.value
             setInput(value)
             onInputDomain(value)
-            setError(undefined)
-            setSubdomains(undefined)
-            setSubError(undefined)
+            if (error) setError(undefined)
+            if (subdomains) setSubdomains(undefined)
+            if (subError) setSubError(undefined)
             if (report && value.trim().toLowerCase() !== report.domain) {
               setReport(undefined)
             }
