@@ -5,6 +5,7 @@ import { useI18n, type MessageKey } from '@/i18n'
 import {
   checkDomain,
   fetchSubdomains,
+  normalizeDomain,
   type CaaRecord,
   type DomainReport,
   type MxRecord,
@@ -19,7 +20,6 @@ type Risk = {
 
 type Props = {
   initialDomain?: string
-  onInputDomain: (value: string) => void
   onQueryDomain: (domain: string) => void
 }
 
@@ -401,11 +401,7 @@ function formatDate(value?: string) {
     : value
 }
 
-export function DomainChecker({
-  initialDomain,
-  onInputDomain,
-  onQueryDomain,
-}: Props) {
+export function DomainChecker({ initialDomain, onQueryDomain }: Props) {
   const { t } = useI18n()
   const [input, setInput] = useState(initialDomain ?? '')
   const [dkimSelector, setDkimSelector] = useState('')
@@ -419,6 +415,14 @@ export function DomainChecker({
 
   const runCheck = useCallback(
     async (value: string, selector?: string) => {
+      const normalized = normalizeDomain(value)
+      if (!normalized) {
+        setError(t('domain.invalid'))
+        return
+      }
+
+      onQueryDomain(normalized)
+      setInput(normalized)
       setLoading(true)
       setError(undefined)
       setReport(undefined)
@@ -426,10 +430,8 @@ export function DomainChecker({
       setSubError(undefined)
 
       try {
-        const result = await checkDomain(value, selector)
+        const result = await checkDomain(normalized, selector)
         setReport(result)
-        setInput(result.domain)
-        onQueryDomain(result.domain)
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err)
         setError(
@@ -500,7 +502,6 @@ export function DomainChecker({
           onChange={(event) => {
             const value = event.target.value
             setInput(value)
-            onInputDomain(value)
             if (error) setError(undefined)
             if (subdomains) setSubdomains(undefined)
             if (subError) setSubError(undefined)
