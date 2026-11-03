@@ -1,6 +1,6 @@
 # Tools
 
-A small static toolbox for on-chain utilities: multi-chain EIP-7702 checks, transaction inspection, and domain security checks (DNS, DNSSEC, SPF, DMARC).
+A small static toolbox for on-chain utilities: multi-chain EIP-7702 checks, Safe multisig inspection, transaction inspection, and domain security checks (DNS, DNSSEC, SPF, DMARC).
 
 English lives at `/`; Chinese lives at `/zh/`.
 

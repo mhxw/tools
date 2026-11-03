@@ -1782,3 +1782,92 @@ footer p {
 .subdomain-privacy {
   margin-top: 10px;
 }
+
+/* ---------- Safe multisig ---------- */
+
+.safe-loading {
+  margin-top: 18px;
+}
+
+.safe-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 18px 0 4px;
+}
+
+.safe-section {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.safe-section h3 {
+  margin: 0 0 12px;
+  font-size: 1rem;
+}
+
+.safe-owners {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.safe-owner {
+  display: inline-block;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  overflow-wrap: anywhere;
+}
+
+.safe-owner.current {
+  border-color: rgba(240, 185, 11, 0.35);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.safe-wallet-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+  font-size: 0.82rem;
+}
+
+.safe-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.safe-form .field {
+  flex: 1 1 260px;
+  margin-top: 0;
+}
+
+.safe-form .safe-threshold-field {
+  flex: 0 1 140px;
+}
+
+.safe-owner-select {
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .safe-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .safe-form {
+    align-items: stretch;
+  }
+
+  .safe-form .btn {
+    width: 100%;
+  }
+}

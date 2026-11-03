@@ -22,6 +22,7 @@ import { useToolbox } from '@/toolbox'
 const NAV: Array<{ id: TopLevelToolId; label: MessageKey; path: string }> = [
   { id: 'home', label: 'app.navHome', path: '/' },
   { id: 'eip7702', label: 'app.nav7702', path: '/eip7702' },
+  { id: 'safe', label: 'app.navSafe', path: '/safe' },
   { id: 'domain', label: 'app.navDomain', path: '/domain' },
 ]
 

@@ -1,9 +1,15 @@
 import type { Language, MessageKey } from './i18n'
 
-export type ToolId = 'home' | 'address' | 'tx' | 'domain' | 'guide'
-export type TopLevelToolId = 'home' | 'eip7702' | 'domain'
+export type ToolId =
+  | 'home'
+  | 'address'
+  | 'tx'
+  | 'domain'
+  | 'safe'
+  | 'guide'
+export type TopLevelToolId = 'home' | 'eip7702' | 'domain' | 'safe'
 export type Eip7702ToolId = 'address' | 'tx' | 'guide'
-export type ReadyToolId = 'eip7702' | 'domain'
+export type ReadyToolId = 'eip7702' | 'domain' | 'safe'
 
 type ToolBase = {
   icon: string
@@ -50,6 +56,15 @@ export const TOP_LEVEL_TOOLS: ToolDefinition[] = [
     path: '/domain',
   },
   {
+    id: 'safe',
+    status: 'ready',
+    icon: 'SAFE',
+    title: 'tool.safeTitle',
+    description: 'tool.safeDesc',
+    tag: 'tool.safeTag',
+    path: '/safe',
+  },
+  {
     id: 'approvals',
     status: 'coming',
     icon: 'AP',
@@ -74,6 +89,7 @@ export const TOOL_PATHS: Record<ToolId, string> = {
   address: '/eip7702',
   tx: '/eip7702/tx',
   domain: '/domain',
+  safe: '/safe',
   guide: '/eip7702/metamask',
 }
 
@@ -84,6 +100,7 @@ export function toolFromPath(pathname: string): ToolId {
   if (path === '/eip7702/metamask') return 'guide'
   if (path === '/eip7702') return 'address'
   if (path === '/domain') return 'domain'
+  if (path === '/safe') return 'safe'
   return 'home'
 }
 
@@ -91,6 +108,7 @@ export function topLevelFromPath(pathname: string): TopLevelToolId {
   const path = stripLocale(pathname)
 
   if (path === '/domain' || path.startsWith('/domain/')) return 'domain'
+  if (path === '/safe' || path.startsWith('/safe/')) return 'safe'
   if (path === '/eip7702' || path.startsWith('/eip7702/')) return 'eip7702'
   return 'home'
 }

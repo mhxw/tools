@@ -46,6 +46,20 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://mhxw.github.io/tools/eip7702/tx/" />
   </url>
   <url>
+    <loc>https://mhxw.github.io/tools/safe/</loc>
+    <lastmod>2026-11-03</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mhxw.github.io/tools/safe/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://mhxw.github.io/tools/zh/safe/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mhxw.github.io/tools/safe/" />
+  </url>
+  <url>
+    <loc>https://mhxw.github.io/tools/zh/safe/</loc>
+    <lastmod>2026-11-03</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mhxw.github.io/tools/safe/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://mhxw.github.io/tools/zh/safe/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mhxw.github.io/tools/safe/" />
+  </url>
+  <url>
     <loc>https://mhxw.github.io/tools/domain/</loc>
     <lastmod>2026-11-03</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://mhxw.github.io/tools/domain/" />

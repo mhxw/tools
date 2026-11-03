@@ -5,13 +5,14 @@ export const SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL ?? 'https://mhxw.github.io/tools'
 ).replace(/\/+$/, '')
 
-export type SeoPage = 'home' | 'address' | 'tx' | 'domain' | 'guide'
+export type SeoPage = 'home' | 'address' | 'tx' | 'domain' | 'safe' | 'guide'
 
 const PATHS: Record<SeoPage, string> = {
   home: '/',
   address: '/eip7702',
   tx: '/eip7702/tx',
   domain: '/domain',
+  safe: '/safe',
   guide: '/eip7702/metamask',
 }
 
@@ -42,6 +43,11 @@ const COPY: Record<Language, Record<SeoPage, Copy>> = {
       description:
         'Check a domain for DNS records, DNSSEC, CAA, SPF, DMARC, DKIM, homograph tricks and RDAP registration data.',
     },
+    safe: {
+      title: 'Safe Multisig Owner & Threshold Inspector',
+      description:
+        'Inspect a Safe multisig: owners, n/m threshold, nonce and version. For 1-signature Safes, add or remove owners directly.',
+    },
     guide: {
       title: 'Cancel EIP-7702 Authorization in MetaMask',
       description:
@@ -68,6 +74,11 @@ const COPY: Record<Language, Record<SeoPage, Copy>> = {
       title: '域名安全检查（DNS / DNSSEC / SPF / DMARC）',
       description:
         '检查域名的 DNS、DNSSEC、CAA、SPF、DMARC、DKIM、同形异义风险与 RDAP 注册信息。',
+    },
+    safe: {
+      title: 'Safe 多签 Owner 与阈值查询',
+      description:
+        '查询 Safe 的 owner 列表、n/m 签名阈值、nonce 和版本；1 个签名即可执行时，可直接添加或移除 owner。',
     },
     guide: {
       title: '在 MetaMask 中取消 EIP-7702 授权',
