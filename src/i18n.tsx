@@ -125,7 +125,8 @@ const zh = {
   'safe.newOwner': '新 owner 地址',
   'safe.newOwnerPlaceholder': '0x... 新 owner',
   'safe.newThreshold': '添加后的阈值',
-  'safe.addHint': '添加后 owner 数量为 {count}。默认建议阈值为 2。',
+  'safe.addHint':
+    '添加后 owner 数量为 {count}。默认保留当前阈值，可按需调整。',
   'safe.addCta': '签名并添加 Owner',
   'safe.removeTitle': '移除 Owner',
   'safe.removeSelect': '选择要移除的 owner',
@@ -595,7 +596,7 @@ const en: Record<MessageKey, string> = {
   'safe.newOwnerPlaceholder': '0x... new owner',
   'safe.newThreshold': 'Threshold after adding',
   'safe.addHint':
-    'The Safe will have {count} owners. A threshold of 2 is recommended.',
+    'The Safe will have {count} owners. The current threshold is kept by default; you can adjust it.',
   'safe.addCta': 'Sign and add owner',
   'safe.removeTitle': 'Remove owner',
   'safe.removeSelect': 'Select an owner to remove',

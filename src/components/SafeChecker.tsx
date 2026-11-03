@@ -152,7 +152,7 @@ export function SafeChecker({ chainId, initialSafe, onQuerySafe }: Props) {
     connection.chainId !== chainId
   const canManage = Boolean(info && info.threshold === 1n && isOwner && !wrongChain)
   const newOwnerCount = info ? info.owners.length + 1 : 1
-  const defaultAddThreshold = String(Math.min(2, newOwnerCount))
+  const defaultAddThreshold = info ? String(info.threshold) : '1'
   const thresholdValue = addThreshold || defaultAddThreshold
 
   const selectedRemoveOwner = useMemo(() => {
