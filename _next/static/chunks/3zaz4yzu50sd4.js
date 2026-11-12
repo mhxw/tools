@@ -1,0 +1,1 @@
+(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push(["object"==typeof document?document.currentScript:void 0,47074,e=>{"use strict";var t=e.i(40971);e.s(["f",0,function(e){let[o,i]=(0,t.useState)(null);return(0,t.useEffect)(()=>{let t=window.setTimeout(()=>{i(new URLSearchParams(window.location.search).get(e))},0);return()=>window.clearTimeout(t)},[e]),o}])}]);
