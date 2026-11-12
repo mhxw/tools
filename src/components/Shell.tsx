@@ -24,6 +24,7 @@ const NAV: Array<{ id: TopLevelToolId; label: MessageKey; path: string }> = [
   { id: 'eip7702', label: 'app.nav7702', path: '/eip7702' },
   { id: 'safe', label: 'app.navSafe', path: '/safe' },
   { id: 'domain', label: 'app.navDomain', path: '/domain' },
+  { id: 'stack', label: 'app.navStack', path: '/stack' },
 ]
 
 export function Shell({ children }: { children: ReactNode }) {
@@ -79,7 +80,7 @@ export function Shell({ children }: { children: ReactNode }) {
             </Link>
           </div>
 
-          {activeTopLevel !== 'domain' && (
+          {activeTopLevel !== 'domain' && activeTopLevel !== 'stack' && (
             <label className="network-select-wrap">
               <select
                 className="network-select"

@@ -1,6 +1,6 @@
 # Tools
 
-A small static toolbox for on-chain utilities: multi-chain EIP-7702 checks, Safe multisig inspection, transaction inspection, and domain security checks (DNS, DNSSEC, SPF, DMARC).
+A small static toolbox for on-chain and web utilities: multi-chain EIP-7702 checks, Safe multisig inspection, transaction inspection, domain security checks (DNS, DNSSEC, SPF, DMARC), and a website stack detector for Next.js, React, Vue, Nuxt, Svelte, Astro and build tools.
 
 English lives at `/`; Chinese lives at `/zh/`.
 

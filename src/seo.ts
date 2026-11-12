@@ -5,7 +5,14 @@ export const SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL ?? 'https://mhxw.github.io/tools'
 ).replace(/\/+$/, '')
 
-export type SeoPage = 'home' | 'address' | 'tx' | 'domain' | 'safe' | 'guide'
+export type SeoPage =
+  | 'home'
+  | 'address'
+  | 'tx'
+  | 'domain'
+  | 'safe'
+  | 'stack'
+  | 'guide'
 
 const PATHS: Record<SeoPage, string> = {
   home: '/',
@@ -13,6 +20,7 @@ const PATHS: Record<SeoPage, string> = {
   tx: '/eip7702/tx',
   domain: '/domain',
   safe: '/safe',
+  stack: '/stack',
   guide: '/eip7702/metamask',
 }
 
@@ -48,6 +56,11 @@ const COPY: Record<Language, Record<SeoPage, Copy>> = {
       description:
         'Inspect a Safe multisig: owners, n/m threshold, nonce and version. For 1-signature Safes, add or remove owners directly.',
     },
+    stack: {
+      title: 'Website Stack Detector (Next.js, React, Vite)',
+      description:
+        'Detect whether a website uses Next.js and which version, plus React, Vue, Nuxt, Svelte, Astro, Vite, webpack and other frontend technologies.',
+    },
     guide: {
       title: 'Cancel EIP-7702 Authorization in MetaMask',
       description:
@@ -79,6 +92,11 @@ const COPY: Record<Language, Record<SeoPage, Copy>> = {
       title: 'Safe 多签 Owner 与阈值查询',
       description:
         '查询 Safe 的 owner 列表、n/m 签名阈值、nonce 和版本；1 个签名即可执行时，可直接添加或移除 owner。',
+    },
+    stack: {
+      title: '网站技术栈检测（Next.js / React / Vite）',
+      description:
+        '检测网站是否使用 Next.js 以及具体版本，并识别 React、Vue、Nuxt、Svelte、Astro、Vite、webpack 等前端技术。',
     },
     guide: {
       title: '在 MetaMask 中取消 EIP-7702 授权',
