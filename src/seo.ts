@@ -57,9 +57,9 @@ const COPY: Record<Language, Record<SeoPage, Copy>> = {
         'Inspect a Safe multisig: owners, n/m threshold, nonce and version. For 1-signature Safes, add or remove owners directly.',
     },
     stack: {
-      title: 'Website Stack Detector (Next.js, React, Vite)',
+      title: 'Frontend Stack Detector (Next.js, React, Vue, Vite)',
       description:
-        'Detect whether a website uses Next.js and which version, plus React, Vue, Nuxt, Svelte, Astro, Vite, webpack and other frontend technologies.',
+        'Detect the frameworks, UI runtimes, build tools and versions behind a website, then compare them with the latest npm releases and known OSV vulnerabilities.',
     },
     guide: {
       title: 'Cancel EIP-7702 Authorization in MetaMask',
@@ -94,9 +94,9 @@ const COPY: Record<Language, Record<SeoPage, Copy>> = {
         '查询 Safe 的 owner 列表、n/m 签名阈值、nonce 和版本；1 个签名即可执行时，可直接添加或移除 owner。',
     },
     stack: {
-      title: '网站技术栈检测（Next.js / React / Vite）',
+      title: '前端技术栈检测（Next.js / React / Vue / Vite）',
       description:
-        '检测网站是否使用 Next.js 以及具体版本，并识别 React、Vue、Nuxt、Svelte、Astro、Vite、webpack 等前端技术。',
+        '检测网站使用的前端框架、UI 运行时、构建工具与版本，并比对 npm 最新版本和 OSV 已知漏洞。',
     },
     guide: {
       title: '在 MetaMask 中取消 EIP-7702 授权',

@@ -82,8 +82,11 @@ export function StackChecker({ initialUrl, onQueryUrl }: Props) {
   useEffect(() => () => controller.current?.abort(), [])
 
   const report = state.status === 'ready' ? state.report : undefined
-  const next = report?.detections.find((item) => item.id === 'nextjs')
-  const react = report?.detections.find((item) => item.id === 'react')
+  const primary =
+    report?.detections.find((item) => item.category === 'framework') ??
+    report?.detections.find((item) => item.category === 'ui') ??
+    report?.detections[0]
+  const uiRuntime = report?.detections.find((item) => item.category === 'ui')
   const buildTool = report?.detections.find((item) => item.category === 'build')
 
   return (
@@ -150,59 +153,64 @@ export function StackChecker({ initialUrl, onQueryUrl }: Props) {
 
       {report && (
         <div className="result">
-          <div className={`stack-hero ${next ? 'ok' : 'neutral'}`}>
+          <div className={`stack-hero ${primary ? 'ok' : 'neutral'}`}>
             <div>
               <p className="eyebrow">
-                {next ? t('stack.nextDetected') : t('stack.nextMissing')}
+                {primary
+                  ? t('stack.detectedTitle', { count: report.detections.length })
+                  : t('stack.eyebrow')}
               </p>
               <h3>
-                {next
-                  ? `Next.js${next.version ? ` ${next.version}` : ''}`
-                  : t('stack.notNext')}
+                {primary
+                  ? `${primary.name}${primary.version ? ` ${primary.version}` : ''}`
+                  : t('stack.noneTitle')}
               </h3>
               <p className="muted small">
-                {next
-                  ? next.version
-                    ? t('stack.nextVersionHint', { version: next.version })
-                    : t('stack.nextNoVersion')
-                  : t('stack.notNextHint')}
+                {primary
+                  ? t('stack.heroHint', {
+                      count: report.detections.length,
+                      build: buildTool?.name ?? '—',
+                    })
+                  : t('stack.empty')}
               </p>
             </div>
-            {next && (
+            {report.router && (
               <span className="stack-badge">
                 {report.router === 'app'
                   ? t('stack.routerApp')
-                  : report.router === 'pages'
-                    ? t('stack.routerPages')
-                    : t('stack.routerUnknown')}
+                  : t('stack.routerPages')}
               </span>
             )}
           </div>
 
           <div className="safe-summary stack-summary">
-            <div className={`domain-stat ${next?.version ? 'ok' : 'neutral'}`}>
-              <span>{t('stack.summaryNext')}</span>
-              <strong>{next ? next.version ?? t('stack.detected') : t('stack.notDetected')}</strong>
-            </div>
-            <div className={`domain-stat ${react ? 'ok' : 'neutral'}`}>
-              <span>{t('stack.summaryReact')}</span>
+            <div className={`domain-stat ${primary ? 'ok' : 'neutral'}`}>
+              <span>{t('stack.summaryFramework')}</span>
               <strong>
-                {react ? react.version ?? t('stack.detected') : t('stack.notDetected')}
+                {primary
+                  ? `${primary.name}${primary.version ? ` ${primary.version}` : ''}`
+                  : t('stack.notDetected')}
               </strong>
             </div>
-            <div className="domain-stat neutral">
-              <span>{t('stack.summaryRouter')}</span>
+            <div className={`domain-stat ${uiRuntime ? 'ok' : 'neutral'}`}>
+              <span>{t('stack.summaryUi')}</span>
               <strong>
-                {report.router === 'app'
-                  ? t('stack.routerApp')
-                  : report.router === 'pages'
-                    ? t('stack.routerPages')
-                    : '—'}
+                {uiRuntime
+                  ? `${uiRuntime.name}${uiRuntime.version ? ` ${uiRuntime.version}` : ''}`
+                  : '—'}
               </strong>
             </div>
             <div className="domain-stat neutral">
               <span>{t('stack.summaryBuild')}</span>
               <strong>{buildTool?.name ?? '—'}</strong>
+            </div>
+            <div className="domain-stat neutral">
+              <span>{t('stack.summaryCount')}</span>
+              <strong>
+                {t('stack.summaryCountValue', {
+                  count: report.detections.length,
+                })}
+              </strong>
             </div>
           </div>
 
@@ -229,6 +237,78 @@ export function StackChecker({ initialUrl, onQueryUrl }: Props) {
               </div>
             )}
           </div>
+
+          {report.versions.length > 0 && (
+            <div className="stack-section">
+              <h3>{t('stack.versionsTitle')}</h3>
+              <div className="stack-version-list">
+                {report.versions.map((item) => {
+                  const status = !item.latest
+                    ? 'unknown'
+                    : !item.outdated
+                      ? 'fresh'
+                      : item.majorBehind
+                        ? 'major'
+                        : 'outdated'
+                  return (
+                    <article
+                      className="stack-version-row"
+                      key={`${item.id}-${item.current}`}
+                    >
+                      <div className="stack-version-head">
+                        <span className="stack-name">{item.name}</span>
+                        <span className="stack-pkg mono">{item.pkg}</span>
+                      </div>
+                      <div className="stack-version-meta">
+                        <span>
+                          {t('stack.current')} <code>{item.current}</code>
+                        </span>
+                        <span>
+                          {t('stack.latest')} <code>{item.latest ?? '—'}</code>
+                        </span>
+                        <span className={`stack-status ${status}`}>
+                          {status === 'fresh'
+                            ? t('stack.versionFresh')
+                            : status === 'major'
+                              ? t('stack.versionMajor')
+                              : status === 'outdated'
+                                ? t('stack.versionOutdated')
+                                : t('stack.versionUnknown')}
+                        </span>
+                      </div>
+                      <div
+                        className={`stack-vuln-line ${item.vulns.length ? 'bad' : 'ok'}`}
+                      >
+                        {item.vulns.length === 0
+                          ? t('stack.vulnNone')
+                          : t('stack.vulnCount', { count: item.vulns.length })}
+                      </div>
+                      {item.vulns.length > 0 && (
+                        <ul className="stack-vuln-list">
+                          {item.vulns.map((vuln) => (
+                            <li key={vuln.id}>
+                              <a
+                                href={vuln.url}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                {vuln.id}
+                              </a>
+                              {vuln.severity && (
+                                <span className="stack-sev">{vuln.severity}</span>
+                              )}
+                              <span className="muted">{vuln.summary}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </article>
+                  )
+                })}
+              </div>
+              <p className="muted small">{t('stack.versionDisclaimer')}</p>
+            </div>
+          )}
 
           <details className="stack-raw">
             <summary>{t('stack.rawTitle')}</summary>

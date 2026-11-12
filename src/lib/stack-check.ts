@@ -37,6 +37,25 @@ export type Detection = {
   version?: string
   confidence: 'high' | 'medium'
   evidence: string[]
+  pkg?: string
+}
+
+export type VulnInfo = {
+  id: string
+  summary: string
+  severity?: string
+  url: string
+}
+
+export type VersionInfo = {
+  id: string
+  name: string
+  pkg: string
+  current: string
+  latest?: string
+  outdated: boolean
+  majorBehind: boolean
+  vulns: VulnInfo[]
 }
 
 export type AssetFetch = {
@@ -54,6 +73,7 @@ export type StackReport = {
   buildId?: string
   router?: 'app' | 'pages'
   detections: Detection[]
+  versions: VersionInfo[]
   assets: AssetFetch[]
   signals: Array<{ label: string; value: string }>
 }
@@ -286,6 +306,7 @@ function detectNext(
     version: version?.value,
     confidence: 'high',
     evidence,
+    pkg: 'next',
   }
 }
 
@@ -336,6 +357,7 @@ function detectReact(
     version,
     confidence: version ? 'high' : nextDetected ? 'high' : 'medium',
     evidence,
+    pkg: 'react',
   }
 }
 
@@ -376,6 +398,7 @@ function detectVue(html: string, chunks: FetchedText[]): Detection | undefined {
     version,
     confidence: version ? 'high' : 'medium',
     evidence,
+    pkg: 'vue',
   }
 }
 
@@ -403,11 +426,12 @@ function detectNuxt(html: string): Detection | undefined {
 }
 
 function detectAngular(html: string, htmlSignals: string[]): Detection | undefined {
-  const version =
+  const rawVersion =
     html.match(/\bng-version\s*=\s*["']([^"']+)["']/i)?.[1] ??
     htmlSignals
       .find((signal) => signal.startsWith('generator: Angular'))
       ?.replace('generator: Angular ', '')
+  const version = rawVersion?.split('+')[0]
 
   const hasMarker =
     Boolean(version) ||
@@ -423,6 +447,7 @@ function detectAngular(html: string, htmlSignals: string[]): Detection | undefin
     version,
     confidence: version ? 'high' : 'medium',
     evidence: version ? [`ng-version = ${version}`] : ['HTML 包含 Angular 标记'],
+    pkg: '@angular/core',
   }
 }
 
@@ -487,6 +512,7 @@ function detectAstro(html: string): Detection | undefined {
     evidence: generator
       ? [`generator meta = Astro${generator[1] ? ` v${generator[1]}` : ''}`]
       : ['HTML 包含 astro-island / astro-cid 标记'],
+    pkg: 'astro',
   }
 }
 
@@ -524,6 +550,7 @@ function detectGatsby(html: string): Detection | undefined {
     version: generator?.[1],
     confidence: generator?.[1] ? 'high' : 'medium',
     evidence: generator ? [`generator meta = Gatsby`] : ['HTML 包含 ___gatsby 标记'],
+    pkg: 'gatsby',
   }
 }
 
@@ -580,7 +607,231 @@ function detectWebpack(chunks: FetchedText[]): Detection | undefined {
     category: 'build',
     confidence: 'high',
     evidence: ['JS bundle 包含 webpack 运行时'],
+    pkg: 'webpack',
   }
+}
+
+function detectSolid(html: string, chunks: FetchedText[]): Detection | undefined {
+  const texts = chunks.map((chunk) => chunk.text)
+  const htmlSignal = /\bdata-hk=/.test(html) || /solid-js/.test(html)
+  const chunkIndex = texts.findIndex((text) => /solid-js/.test(text))
+  if (!htmlSignal && chunkIndex < 0) return undefined
+
+  let version: string | undefined
+  for (const text of texts) {
+    if (!/solid-js/.test(text)) continue
+    version = firstMatch(
+      [text],
+      [
+        /version\s*[:=]\s*["'`](1\.\d+\.\d+[^"'`]*)["'`]/,
+        /["'`](1\.\d+\.\d+(?:-[a-z0-9.-]+)?)["'`]/,
+      ],
+    )?.value
+    if (version) break
+  }
+
+  return {
+    id: 'solid',
+    name: 'Solid',
+    category: 'ui',
+    version,
+    confidence: chunkIndex >= 0 ? 'high' : 'medium',
+    evidence: htmlSignal ? ['HTML 包含 Solid 水合标记'] : ['JS bundle 包含 solid-js'],
+    pkg: 'solid-js',
+  }
+}
+
+function detectPreact(html: string, chunks: FetchedText[]): Detection | undefined {
+  const texts = chunks.map((chunk) => chunk.text)
+  const chunkIndex = texts.findIndex((text) =>
+    /preact\/hooks|preact\/compat|__PREACT__/.test(text),
+  )
+  if (chunkIndex < 0 && !/__PREACT__/.test(html)) return undefined
+
+  let version: string | undefined
+  for (const text of texts) {
+    if (!/preact/.test(text)) continue
+    version = firstMatch(
+      [text],
+      [
+        /version\s*[:=]\s*["'`](10\.\d+\.\d+[^"'`]*)["'`]/,
+        /["'`](10\.\d+\.\d+(?:-[a-z0-9.-]+)?)["'`]/,
+      ],
+    )?.value
+    if (version) break
+  }
+
+  return {
+    id: 'preact',
+    name: 'Preact',
+    category: 'ui',
+    version,
+    confidence: 'high',
+    evidence: ['JS bundle 包含 Preact 运行时'],
+    pkg: 'preact',
+  }
+}
+
+function detectAlpine(html: string, chunks: FetchedText[]): Detection | undefined {
+  const texts = chunks.map((chunk) => chunk.text)
+  const htmlSignal =
+    /\bx-data\s*=/.test(html) ||
+    /\bx-init\s*=/.test(html) ||
+    /\bx-on:/.test(html)
+  const chunkIndex = texts.findIndex((text) => /Alpine\.version|alpinejs/.test(text))
+  if (!htmlSignal && chunkIndex < 0) return undefined
+
+  let version: string | undefined
+  for (const text of texts) {
+    if (!/Alpine|alpinejs/.test(text)) continue
+    version = firstMatch(
+      [text],
+      [
+        /Alpine\.version\s*=\s*["'`](3\.\d+\.\d+[^"'`]*)["'`]/,
+        /version\s*[:=]\s*["'`](3\.\d+\.\d+[^"'`]*)["'`]/,
+      ],
+    )?.value
+    if (version) break
+  }
+
+  return {
+    id: 'alpine',
+    name: 'Alpine.js',
+    category: 'ui',
+    version,
+    confidence: htmlSignal ? 'high' : 'medium',
+    evidence: htmlSignal ? ['HTML 包含 x-data / x-init 指令'] : ['JS bundle 包含 Alpine'],
+    pkg: 'alpinejs',
+  }
+}
+
+function detectQwik(html: string, chunks: FetchedText[]): Detection | undefined {
+  const texts = chunks.map((chunk) => chunk.text)
+  const hasMarker =
+    /q:container/.test(html) ||
+    /q:version/.test(html) ||
+    texts.some((text) => /qwik\/|@builder\.io\/qwik/.test(text))
+  if (!hasMarker) return undefined
+
+  const version = html.match(/\bq:version\s*=\s*["']([^"']+)["']/)?.[1]
+
+  return {
+    id: 'qwik',
+    name: 'Qwik',
+    category: 'framework',
+    version,
+    confidence: 'high',
+    evidence: ['HTML 包含 q:container / q:version 标记'],
+    pkg: '@builder.io/qwik',
+  }
+}
+
+function detectEmber(html: string, chunks: FetchedText[]): Detection | undefined {
+  const texts = chunks.map((chunk) => chunk.text)
+  const hasMarker =
+    /ember-view|data-ember-action/.test(html) ||
+    texts.some((text) => /ember-source|Ember\.VERSION/.test(text))
+  if (!hasMarker) return undefined
+
+  let version: string | undefined
+  for (const text of texts) {
+    if (!/Ember|ember-source/.test(text)) continue
+    version = firstMatch(
+      [text],
+      [/Ember\.VERSION\s*=\s*["'`]([\d.]+[^"'`]*)["'`]/],
+    )?.value
+    if (version) break
+  }
+
+  return {
+    id: 'ember',
+    name: 'Ember',
+    category: 'framework',
+    version,
+    confidence: 'high',
+    evidence: ['HTML 或 JS 包含 Ember 标记'],
+    pkg: 'ember-source',
+  }
+}
+
+function detectLit(html: string, chunks: FetchedText[]): Detection | undefined {
+  const texts = chunks.map((chunk) => chunk.text)
+  const hasMarker =
+    /lit-html|lit-element|reactive-element/.test(html) ||
+    texts.some((text) => /lit-html|lit-element|reactive-element/.test(text))
+  if (!hasMarker) return undefined
+
+  return {
+    id: 'lit',
+    name: 'Lit',
+    category: 'ui',
+    confidence: 'medium',
+    evidence: ['JS bundle 包含 lit-html / lit-element'],
+    pkg: 'lit',
+  }
+}
+
+function detectCssInJs(chunks: FetchedText[]): Detection[] {
+  const texts = chunks.map((chunk) => chunk.text)
+  const result: Detection[] = []
+
+  if (texts.some((text) => /styled-components/.test(text))) {
+    result.push({
+      id: 'styled-components',
+      name: 'styled-components',
+      category: 'css',
+      confidence: 'medium',
+      evidence: ['JS bundle 包含 styled-components'],
+      pkg: 'styled-components',
+    })
+  }
+
+  if (texts.some((text) => /@emotion\//.test(text))) {
+    result.push({
+      id: 'emotion',
+      name: 'Emotion',
+      category: 'css',
+      confidence: 'medium',
+      evidence: ['JS bundle 包含 @emotion'],
+      pkg: '@emotion/react',
+    })
+  }
+
+  return result
+}
+
+function detectGenerators(html: string): Detection[] {
+  const known: Record<string, { id: string; category: TechCategory; pkg?: string }> = {
+    vitepress: { id: 'vitepress', category: 'framework', pkg: 'vitepress' },
+    docusaurus: { id: 'docusaurus', category: 'framework', pkg: '@docusaurus/core' },
+    mkdocs: { id: 'mkdocs', category: 'platform' },
+    hugo: { id: 'hugo', category: 'platform' },
+    jekyll: { id: 'jekyll', category: 'platform' },
+    ghost: { id: 'ghost', category: 'platform' },
+  }
+
+  const out: Detection[] = []
+  for (const match of html.matchAll(
+    /<meta\b[^>]*name=["']generator["'][^>]*content=["']([^"']+)["']/gi,
+  )) {
+    const content = decodeEntities(match[1]).trim()
+    const parsed = content.match(/^([A-Za-z][\w .-]*?)(?:\s+v?(\d[\w.+-]*))?$/i)
+    if (!parsed) continue
+    const name = parsed[1].trim()
+    const version = parsed[2]
+    const meta = known[name.toLowerCase()]
+    if (!meta) continue
+    out.push({
+      id: meta.id,
+      name,
+      category: meta.category,
+      version,
+      confidence: 'high',
+      evidence: [`generator meta = ${content}`],
+      pkg: meta.pkg,
+    })
+  }
+  return out
 }
 
 function detectJquery(html: string, chunks: FetchedText[]): Detection | undefined {
@@ -609,6 +860,7 @@ function detectJquery(html: string, chunks: FetchedText[]): Detection | undefine
     version,
     confidence: version ? 'high' : 'medium',
     evidence: version ? [`jQuery ${version}`] : ['页面加载了 jQuery'],
+    pkg: 'jquery',
   }
 }
 
@@ -629,6 +881,7 @@ function detectBootstrap(html: string): Detection | undefined {
     version,
     confidence: version ? 'high' : 'medium',
     evidence: version ? [`Bootstrap ${version}`] : ['页面加载了 Bootstrap 资源'],
+    pkg: 'bootstrap',
   }
 }
 
@@ -707,6 +960,132 @@ function buildIdOf(html: string) {
   )
 }
 
+function normalizeVersion(version: string | undefined) {
+  if (!version) return undefined
+  const cleaned = version.trim().replace(/^v/i, '').split('+')[0]
+  return /^\d+\.\d+\.\d+$/.test(cleaned) ? cleaned : undefined
+}
+
+function compareVersions(a: string, b: string) {
+  const left = a.split('.').map((part) => Number(part) || 0)
+  const right = b.split('.').map((part) => Number(part) || 0)
+  for (let i = 0; i < Math.max(left.length, right.length); i += 1) {
+    const l = left[i] ?? 0
+    const r = right[i] ?? 0
+    if (l !== r) return l < r ? -1 : 1
+  }
+  return 0
+}
+
+const latestCache = new Map<string, string | null>()
+
+async function fetchLatestVersion(pkg: string, signal: AbortSignal) {
+  if (latestCache.has(pkg)) return latestCache.get(pkg) ?? undefined
+
+  try {
+    const res = await fetch(
+      `https://registry.npmjs.org/${encodeURIComponent(pkg)}/latest`,
+      { signal, credentials: 'omit' },
+    )
+    if (!res.ok) {
+      latestCache.set(pkg, null)
+      return undefined
+    }
+    const data = (await res.json()) as { version?: unknown }
+    const version = typeof data.version === 'string' ? data.version : undefined
+    latestCache.set(pkg, version ?? null)
+    return version
+  } catch {
+    return undefined
+  }
+}
+
+type OsvVuln = {
+  id?: string
+  summary?: string
+  database_specific?: { severity?: string }
+}
+
+async function fetchVulns(
+  pkg: string,
+  version: string,
+  signal: AbortSignal,
+): Promise<VulnInfo[]> {
+  try {
+    const res = await fetch('https://api.osv.dev/v1/query', {
+      method: 'POST',
+      signal,
+      credentials: 'omit',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        package: { name: pkg, ecosystem: 'npm' },
+        version,
+      }),
+    })
+    if (!res.ok) return []
+
+    const data = (await res.json()) as { vulns?: OsvVuln[] }
+    return (data.vulns ?? []).slice(0, 6).map((vuln) => ({
+      id: vuln.id ?? 'OSV',
+      summary: vuln.summary ?? '',
+      severity: vuln.database_specific?.severity,
+      url: `https://osv.dev/vulnerability/${vuln.id ?? ''}`,
+    }))
+  } catch {
+    return []
+  }
+}
+
+async function enrichVersions(
+  detections: Detection[],
+  signal: AbortSignal,
+): Promise<VersionInfo[]> {
+  const seen = new Set<string>()
+  const targets = detections.filter((detection) => {
+    if (!detection.pkg || !normalizeVersion(detection.version)) return false
+    const key = `${detection.pkg}@${normalizeVersion(detection.version)}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+
+  const results = await Promise.all(
+    targets.map(async (detection): Promise<VersionInfo | undefined> => {
+      const pkg = detection.pkg as string
+      const current = normalizeVersion(detection.version) as string
+
+      try {
+        const [latest, vulns] = await Promise.all([
+          fetchLatestVersion(pkg, signal),
+          fetchVulns(pkg, current, signal),
+        ])
+        const outdated = Boolean(
+          latest && compareVersions(current, latest) < 0,
+        )
+        const majorBehind = Boolean(
+          latest &&
+            Number(current.split('.')[0]) < Number(latest.split('.')[0]),
+        )
+
+        return {
+          id: detection.id,
+          name: detection.name,
+          pkg,
+          current,
+          latest,
+          outdated,
+          majorBehind,
+          vulns,
+        }
+      } catch {
+        return undefined
+      }
+    }),
+  )
+
+  return results.filter((item): item is VersionInfo => Boolean(item))
+}
+
 export async function checkStack(
   input: string,
   signal?: AbortSignal,
@@ -782,6 +1161,24 @@ export async function checkStack(
     const vue = detectVue(html, chunks)
     if (vue) detections.push(vue)
 
+    const solid = detectSolid(html, chunks)
+    if (solid) detections.push(solid)
+
+    const preact = detectPreact(html, chunks)
+    if (preact) detections.push(preact)
+
+    const alpine = detectAlpine(html, chunks)
+    if (alpine) detections.push(alpine)
+
+    const qwik = detectQwik(html, chunks)
+    if (qwik) detections.push(qwik)
+
+    const ember = detectEmber(html, chunks)
+    if (ember) detections.push(ember)
+
+    const lit = detectLit(html, chunks)
+    if (lit) detections.push(lit)
+
     const angular = detectAngular(html, htmlSignals)
     if (angular) detections.push(angular)
 
@@ -796,6 +1193,8 @@ export async function checkStack(
     const gatsby = detectGatsby(html)
     if (gatsby) detections.push(gatsby)
 
+    detections.push(...detectGenerators(html))
+
     const vite = detectVite(html, chunks)
     if (vite) detections.push(vite)
 
@@ -804,6 +1203,8 @@ export async function checkStack(
 
     const webpack = detectWebpack(chunks)
     if (webpack) detections.push(webpack)
+
+    detections.push(...detectCssInJs(chunks))
 
     const jquery = detectJquery(html, chunks)
     if (jquery) detections.push(jquery)
@@ -869,6 +1270,25 @@ export async function checkStack(
     const buildId = buildIdOf(html)
     if (buildId) signals.push({ label: 'buildId', value: buildId })
 
+    const uniqueDetections = detections.filter(
+      (detection, index, all) =>
+        all.findIndex((item) => item.id === detection.id) === index,
+    )
+
+    // Version enrichment is best-effort: never let a slow registry or OSV
+    // lookup hold up the stack report for long.
+    const versionAbort = new AbortController()
+    const versionTimer = setTimeout(() => versionAbort.abort(), 7000)
+    const abortVersions = () => versionAbort.abort()
+    controller.signal.addEventListener('abort', abortVersions)
+    let versions: VersionInfo[] = []
+    try {
+      versions = await enrichVersions(uniqueDetections, versionAbort.signal)
+    } finally {
+      clearTimeout(versionTimer)
+      controller.signal.removeEventListener('abort', abortVersions)
+    }
+
     return {
       url: target,
       title: pageTitle(html),
@@ -876,7 +1296,8 @@ export async function checkStack(
       scriptCount: assetRefs.length,
       buildId,
       router,
-      detections,
+      detections: uniqueDetections,
+      versions,
       assets,
       signals,
     }
