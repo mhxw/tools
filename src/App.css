@@ -2204,3 +2204,271 @@ footer p {
   font-size: 0.62rem;
   text-transform: uppercase;
 }
+
+.stack-zw-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.stack-zw-head h3 {
+  margin: 0;
+}
+
+.stack-zw-list {
+  display: grid;
+  gap: 9px;
+  margin-bottom: 8px;
+}
+
+.stack-zw-item {
+  padding: 11px 13px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-solid);
+}
+
+.stack-zw-title {
+  color: var(--text);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.stack-zw-title:hover {
+  color: var(--accent);
+}
+
+.stack-zw-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 5px;
+  color: var(--muted-2);
+  font-size: 0.72rem;
+}
+
+.stack-zw-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.stack-zw-tag {
+  padding: 1px 7px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.66rem;
+}
+
+.stack-exp-block {
+  margin-top: 12px;
+}
+
+.stack-exp-label {
+  margin: 0 0 6px;
+  color: var(--muted-2);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.stack-exp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.stack-exp-chip {
+  padding: 3px 7px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  overflow-wrap: anywhere;
+}
+
+.stack-exp-secrets,
+.stack-exp-maps {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.74rem;
+}
+
+.stack-exp-secrets li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 7px;
+}
+
+.stack-exp-secrets code {
+  color: var(--text);
+  font-size: 0.7rem;
+}
+
+.stack-exp-maps li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 7px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.stack-exp-maps li .mono {
+  flex: 1 1 240px;
+}
+
+.stack-exp-warning {
+  margin: 6px 0 10px;
+  padding: 9px 11px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--text);
+  font-size: 0.76rem;
+}
+
+.stack-exp-warning strong {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--accent);
+  font-size: 0.78rem;
+}
+
+.stack-exp-warning p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.stack-sev.public {
+  background: var(--info-soft);
+  color: var(--info);
+}
+
+.stack-sev.high {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.stack-sev.critical {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.stack-exp-value {
+  color: var(--accent);
+}
+
+.stack-exp-muted {
+  color: var(--muted-2);
+}
+
+.stack-reveal {
+  font-size: 0.68rem;
+  padding: 0;
+}
+
+.stack-manual {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 10px;
+  background: var(--bg-soft);
+}
+
+.stack-manual-title {
+  margin: 0 0 4px;
+  font-weight: 600;
+  font-size: 0.86rem;
+}
+
+.stack-manual-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.stack-manual-form .text-input {
+  flex: 1 1 200px;
+}
+
+.stack-manual-error {
+  margin: 6px 0 0;
+  color: var(--danger);
+  font-size: 0.74rem;
+}
+
+.stack-manual-applied {
+  margin-top: 10px;
+}
+
+.stack-guide {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.stack-guide > summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.stack-guide p {
+  margin: 8px 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.65;
+}
+
+.stack-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.stack-guide-grid h4,
+.stack-guide-check-title {
+  margin: 0 0 4px;
+  font-size: 0.86rem;
+}
+
+.stack-guide pre {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-soft);
+  overflow: auto;
+  font-size: 0.7rem;
+}
+
+.stack-guide-checklist {
+  display: grid;
+  gap: 5px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.stack-guide-checklist li::before {
+  content: '☐';
+  margin-right: 8px;
+  color: var(--muted-2);
+}

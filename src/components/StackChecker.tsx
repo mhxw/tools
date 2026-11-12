@@ -4,10 +4,12 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useI18n, type MessageKey } from '../i18n'
 import {
   checkStack,
+  lookupVersion,
   normalizeTarget,
   stackErrorMessage,
   type Detection,
   type StackReport,
+  type VersionInfo,
 } from '../lib/stack-check'
 
 type ViewState =
@@ -27,12 +29,36 @@ function categoryKey(category: Detection['category']): MessageKey {
   return `stack.cat.${category}` as MessageKey
 }
 
+function formatDate(value: string | undefined, lang: 'zh' | 'en') {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return date.toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
+
 export function StackChecker({ initialUrl, onQueryUrl }: Props) {
-  const { t } = useI18n()
+  const { lang, t } = useI18n()
   const [input, setInput] = useState(initialUrl ?? '')
   const [state, setState] = useState<ViewState>({ status: 'idle' })
+  const [revealed, setRevealed] = useState<Set<string>>(new Set())
+  const [manualVersion, setManualVersion] = useState('')
+  const [manualInfo, setManualInfo] = useState<VersionInfo>()
+  const [manualError, setManualError] = useState('')
   const lastInitial = useRef<string | undefined>(undefined)
   const controller = useRef<AbortController | null>(null)
+
+  function toggleReveal(id: string) {
+    setRevealed((previous) => {
+      const next = new Set(previous)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
   function describeError(code: string) {
     if (code === 'invalid-url') return t('stack.invalid')
@@ -57,6 +83,10 @@ export function StackChecker({ initialUrl, onQueryUrl }: Props) {
 
       setInput(target)
       setState({ status: 'loading' })
+      setRevealed(new Set())
+      setManualVersion('')
+      setManualInfo(undefined)
+      setManualError('')
       onQueryUrl(target)
 
       try {
@@ -70,6 +100,17 @@ export function StackChecker({ initialUrl, onQueryUrl }: Props) {
     },
     [onQueryUrl],
   )
+
+  async function applyManualVersion() {
+    const value = manualVersion.trim()
+    if (!/^\d+\.\d+\.\d+$/.test(value)) {
+      setManualError(t('stack.manualInvalid'))
+      return
+    }
+    setManualError('')
+    const info = await lookupVersion('Next.js', 'next', value)
+    setManualInfo(info)
+  }
 
   useEffect(() => {
     if (!initialUrl || lastInitial.current === initialUrl) return
@@ -88,6 +129,15 @@ export function StackChecker({ initialUrl, onQueryUrl }: Props) {
     report?.detections[0]
   const uiRuntime = report?.detections.find((item) => item.category === 'ui')
   const buildTool = report?.detections.find((item) => item.category === 'build')
+  const nextDetection = report?.detections.find((item) => item.id === 'nextjs')
+  const primaryVersion =
+    primary?.id === 'nextjs'
+      ? primary.version ?? manualInfo?.current
+      : primary?.version
+  const displayVersions =
+    report && manualInfo && !report.versions.some((item) => item.id === 'nextjs')
+      ? [...report.versions, manualInfo]
+      : (report?.versions ?? [])
 
   return (
     <section className="panel">
@@ -153,6 +203,11 @@ export function StackChecker({ initialUrl, onQueryUrl }: Props) {
 
       {report && (
         <div className="result">
+          {report.via === 'reader' && (
+            <div className="notice notice-info">
+              {t('stack.readerFallback')}
+            </div>
+          )}
           <div className={`stack-hero ${primary ? 'ok' : 'neutral'}`}>
             <div>
               <p className="eyebrow">
@@ -162,7 +217,7 @@ export function StackChecker({ initialUrl, onQueryUrl }: Props) {
               </p>
               <h3>
                 {primary
-                  ? `${primary.name}${primary.version ? ` ${primary.version}` : ''}`
+                  ? `${primary.name}${primaryVersion ? ` ${primaryVersion}` : ''}`
                   : t('stack.noneTitle')}
               </h3>
               <p className="muted small">
@@ -183,12 +238,53 @@ export function StackChecker({ initialUrl, onQueryUrl }: Props) {
             )}
           </div>
 
+          {nextDetection && !nextDetection.version && !manualInfo && (
+            <div className="stack-manual">
+              <p className="stack-manual-title">{t('stack.manualTitle')}</p>
+              <p className="muted small">
+                {t('stack.manualHint')} <code>window.next?.version</code>
+              </p>
+              <div className="stack-manual-form">
+                <input
+                  className="text-input mono"
+                  value={manualVersion}
+                  onChange={(event) => {
+                    setManualVersion(event.target.value)
+                    setManualError('')
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') void applyManualVersion()
+                  }}
+                  placeholder={t('stack.manualPlaceholder')}
+                  spellCheck={false}
+                  autoComplete="off"
+                />
+                <button
+                  className="btn btn-ghost btn-sm"
+                  type="button"
+                  onClick={() => void applyManualVersion()}
+                >
+                  {t('stack.manualUse')}
+                </button>
+              </div>
+              {manualError && (
+                <p className="stack-manual-error">{manualError}</p>
+              )}
+            </div>
+          )}
+
+          {manualInfo && (
+            <p className="muted small stack-manual-applied">
+              {t('stack.manualApplied', { version: manualInfo.current })}
+            </p>
+          )}
+
           <div className="safe-summary stack-summary">
             <div className={`domain-stat ${primary ? 'ok' : 'neutral'}`}>
               <span>{t('stack.summaryFramework')}</span>
               <strong>
                 {primary
-                  ? `${primary.name}${primary.version ? ` ${primary.version}` : ''}`
+                  ? `${primary.name}${primaryVersion ? ` ${primaryVersion}` : ''}`
                   : t('stack.notDetected')}
               </strong>
             </div>
@@ -220,29 +316,44 @@ export function StackChecker({ initialUrl, onQueryUrl }: Props) {
               <div className="notice notice-info">{t('stack.empty')}</div>
             ) : (
               <div className="stack-grid">
-                {report.detections.map((item) => (
-                  <article className="stack-card" key={item.id}>
-                    <div className="stack-card-head">
-                      <span className="stack-name">{item.name}</span>
-                      <span
-                        className={`stack-version ${item.version ? '' : 'unknown'}`}
-                      >
-                        {item.version ?? t('stack.noVersion')}
+                {report.detections.map((item) => {
+                  const itemVersion =
+                    item.id === 'nextjs'
+                      ? item.version ?? manualInfo?.current
+                      : item.version
+                  return (
+                    <article className="stack-card" key={item.id}>
+                      <div className="stack-card-head">
+                        <span className="stack-name">{item.name}</span>
+                        <span
+                          className={`stack-version ${itemVersion ? '' : 'unknown'}`}
+                        >
+                          {itemVersion ?? t('stack.noVersion')}
+                        </span>
+                      </div>
+                      <span className="stack-cat">
+                        {t(categoryKey(item.category))}
                       </span>
-                    </div>
-                    <span className="stack-cat">{t(categoryKey(item.category))}</span>
-                    <p className="stack-evidence">{item.evidence.join(' · ')}</p>
-                  </article>
-                ))}
+                      <p className="stack-evidence">
+                        {item.evidence.join(' · ')}
+                      </p>
+                      {item.id === 'nextjs' && !itemVersion && (
+                        <p className="stack-evidence muted">
+                          {t('stack.nextVersionMissing')}
+                        </p>
+                      )}
+                    </article>
+                  )
+                })}
               </div>
             )}
           </div>
 
-          {report.versions.length > 0 && (
+          {displayVersions.length > 0 && (
             <div className="stack-section">
               <h3>{t('stack.versionsTitle')}</h3>
               <div className="stack-version-list">
-                {report.versions.map((item) => {
+                {displayVersions.map((item) => {
                   const status = !item.latest
                     ? 'unknown'
                     : !item.outdated
@@ -310,6 +421,232 @@ export function StackChecker({ initialUrl, onQueryUrl }: Props) {
             </div>
           )}
 
+          <div className="stack-section">
+            <div className="stack-zw-head">
+              <h3>{t('stack.zeroWireTitle')}</h3>
+              <a
+                className="inline-link"
+                href={report.zeroWire.url}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {t('stack.zeroWireMore')}
+              </a>
+            </div>
+            {report.zeroWire.items.length === 0 ? (
+              <p className="muted small">{t('stack.zeroWireEmpty')}</p>
+            ) : (
+              <div className="stack-zw-list">
+                {report.zeroWire.items.map((item) => (
+                  <article className="stack-zw-item" key={item.id}>
+                    <a
+                      className="stack-zw-title"
+                      href={item.link}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {item.title}
+                    </a>
+                    <div className="stack-zw-meta">
+                      {item.published && (
+                        <span>{formatDate(item.published, lang)}</span>
+                      )}
+                      <span>
+                        {t('stack.zeroWireMatch', {
+                          names: item.matched.join(', '),
+                        })}
+                      </span>
+                    </div>
+                    <div className="stack-zw-tags">
+                      {item.categories.slice(0, 5).map((category) => (
+                        <span className="stack-zw-tag" key={category}>
+                          {category}
+                        </span>
+                      ))}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+            <p className="muted small">{t('stack.zeroWireSource')}</p>
+          </div>
+
+          <div className="stack-section">
+            <h3>{t('stack.exposureTitle')}</h3>
+            {report.exposure.envNames.length === 0 &&
+            report.exposure.sensitive.length === 0 &&
+            report.exposure.sensitiveNames.length === 0 &&
+            report.exposure.secrets.length === 0 &&
+            report.exposure.sourceMaps.length === 0 ? (
+              <p className="muted small">{t('stack.exposureEmpty')}</p>
+            ) : (
+              <>
+                {report.exposure.envNames.length > 0 && (
+                  <div className="stack-exp-block">
+                    <p className="stack-exp-label">
+                      {t('stack.exposureNames', {
+                        count: report.exposure.envNames.length,
+                      })}
+                    </p>
+                    <div className="stack-exp-chips">
+                      {report.exposure.envNames.map((item) => (
+                        <span
+                          className="stack-exp-chip"
+                          key={item.name}
+                          title={item.source}
+                        >
+                          <span>{item.name}</span>
+                          {item.value ? (
+                            <span className="stack-exp-value"> = {item.value}</span>
+                          ) : item.fallback ? (
+                            <span className="stack-exp-value">
+                              {' '}
+                              → {item.fallback}
+                            </span>
+                          ) : (
+                            <span className="stack-exp-muted">
+                              {' '}
+                              {t('stack.exposureNoValue')}
+                            </span>
+                          )}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {report.exposure.sensitive.length > 0 && (
+                  <div className="stack-exp-block">
+                    <p className="stack-exp-label">
+                      {t('stack.exposureSensitive', {
+                        count: report.exposure.sensitive.length,
+                      })}
+                    </p>
+                    <ul className="stack-exp-secrets">
+                      {report.exposure.sensitive.map((item) => {
+                        const revealId = `sensitive:${item.key}:${item.source}:${item.preview}`
+                        const isRevealed = revealed.has(revealId)
+                        return (
+                          <li key={revealId}>
+                            <span className={`stack-sev ${item.severity}`}>
+                              {t(
+                                `stack.exposureSeverity.${item.severity}` as MessageKey,
+                              )}
+                            </span>
+                            <code>{item.key}</code>
+                            <span className="muted">=</span>
+                            <code className="break">
+                              {isRevealed ? item.value : item.preview}
+                            </code>
+                            <button
+                              className="link-button stack-reveal"
+                              type="button"
+                              onClick={() => toggleReveal(revealId)}
+                            >
+                              {isRevealed ? t('common.hide') : t('stack.reveal')}
+                            </button>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </div>
+                )}
+
+                {report.exposure.sensitiveNames.length > 0 && (
+                  <div className="stack-exp-block">
+                    <p className="stack-exp-label">
+                      {t('stack.exposureSensitiveNames', {
+                        count: report.exposure.sensitiveNames.length,
+                      })}
+                    </p>
+                    <div className="stack-exp-chips">
+                      {report.exposure.sensitiveNames.map((item) => (
+                        <span
+                          className="stack-exp-chip"
+                          key={item.name}
+                          title={item.source}
+                        >
+                          {item.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {report.exposure.secrets.length > 0 && (
+                  <div className="stack-exp-block">
+                    <p className="stack-exp-label">
+                      {t('stack.exposureSecrets', {
+                        count: report.exposure.secrets.length,
+                      })}
+                    </p>
+                    <ul className="stack-exp-secrets">
+                      {report.exposure.secrets.map((item) => {
+                        const revealId = `secret:${item.kind}:${item.source}:${item.preview}`
+                        const isRevealed = revealed.has(revealId)
+                        return (
+                          <li key={revealId}>
+                            <span className={`stack-sev ${item.severity}`}>
+                              {t(
+                                `stack.exposureSeverity.${item.severity}` as MessageKey,
+                              )}
+                            </span>
+                            <span>{item.label}</span>
+                            <code className="break">
+                              {isRevealed ? item.value : item.preview}
+                            </code>
+                            <button
+                              className="link-button stack-reveal"
+                              type="button"
+                              onClick={() => toggleReveal(revealId)}
+                            >
+                              {isRevealed ? t('common.hide') : t('stack.reveal')}
+                            </button>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </div>
+                )}
+
+                {report.exposure.sourceMaps.length > 0 && (
+                  <div className="stack-exp-block">
+                    <p className="stack-exp-label">
+                      {t('stack.exposureMaps', {
+                        count: report.exposure.sourceMaps.length,
+                      })}
+                    </p>
+                    <div className="stack-exp-warning">
+                      <strong>{t('stack.sourceMapWarningTitle')}</strong>
+                      <p>{t('stack.sourceMapWarningBody')}</p>
+                    </div>
+                    <ul className="stack-exp-maps">
+                      {report.exposure.sourceMaps.map((item) => (
+                        <li key={item.url}>
+                          <span
+                            className={`stack-sev ${
+                              item.status === 'exposed' ? 'high' : 'public'
+                            }`}
+                          >
+                            {t(
+                              item.status !== 'exposed'
+                                ? 'stack.sourceMapUnverified'
+                                : item.hasSourcesContent
+                                  ? 'stack.sourceMapSources'
+                                  : 'stack.sourceMapExposed',
+                            )}
+                          </span>
+                          <span className="mono break">{item.url}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </>
+            )}
+            <p className="muted small">{t('stack.exposureNote')}</p>
+          </div>
+
           <details className="stack-raw">
             <summary>{t('stack.rawTitle')}</summary>
             <dl className="stack-raw-list">
@@ -349,6 +686,53 @@ export function StackChecker({ initialUrl, onQueryUrl }: Props) {
           </p>
         </div>
       )}
+
+      <details className="stack-guide">
+        <summary>{t('stack.guideTitle')}</summary>
+        <p className="muted small">{t('stack.guideIntro')}</p>
+
+        <div className="stack-guide-grid">
+          <section>
+            <h4>{t('stack.guideStep1Title')}</h4>
+            <p>{t('stack.guideStep1Body')}</p>
+            <pre>
+              <code>{`window.next?.version
+pnpm up next@latest react@latest react-dom@latest
+pnpm build`}</code>
+            </pre>
+          </section>
+
+          <section>
+            <h4>{t('stack.guideStep2Title')}</h4>
+            <p>{t('stack.guideStep2Body')}</p>
+          </section>
+
+          <section>
+            <h4>{t('stack.guideStep3Title')}</h4>
+            <p>{t('stack.guideStep3Body')}</p>
+          </section>
+
+          <section>
+            <h4>{t('stack.guideStep4Title')}</h4>
+            <p>{t('stack.guideStep4Body')}</p>
+          </section>
+
+          <section>
+            <h4>{t('stack.guideStep5Title')}</h4>
+            <p>{t('stack.guideStep5Body')}</p>
+          </section>
+        </div>
+
+        <h4 className="stack-guide-check-title">{t('stack.guideChecklistTitle')}</h4>
+        <ul className="stack-guide-checklist">
+          <li>{t('stack.guideCheck1')}</li>
+          <li>{t('stack.guideCheck2')}</li>
+          <li>{t('stack.guideCheck3')}</li>
+          <li>{t('stack.guideCheck4')}</li>
+          <li>{t('stack.guideCheck5')}</li>
+          <li>{t('stack.guideCheck6')}</li>
+        </ul>
+      </details>
     </section>
   )
 }

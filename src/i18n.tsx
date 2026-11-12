@@ -157,6 +157,8 @@ const zh = {
   'stack.query': '检测',
   'stack.checking': '检测中...',
   'stack.loading': '正在通过代理读取页面 HTML 与 JS...',
+  'stack.readerFallback':
+    '代理无法直接读取目标站点，已改用 Reader 回退，并尝试恢复被拦截的运行时脚本；脚本级分析仍可能不完整。',
   'stack.invalid': '请输入有效的网址',
   'stack.timeout': '读取超时，请稍后再试',
   'stack.rateLimit': '代理请求过于频繁，请稍后再试',
@@ -188,7 +190,68 @@ const zh = {
   'stack.vulnCount': 'OSV 发现 {count} 个已知漏洞',
   'stack.versionDisclaimer':
     '版本来自页面公开资源，可能不是实际构建依赖；最新版本查询自 npm，漏洞数据来自 OSV，仅供参考，请结合实际情况复核。',
+  'stack.zeroWireTitle': 'Cloudflare Zero Wire 漏洞情报',
+  'stack.zeroWireMore': '打开 Zero Wire',
+  'stack.zeroWireEmpty': '当前技术栈没有匹配到 Zero Wire 简报。',
+  'stack.zeroWireMatch': '匹配 {names}',
+  'stack.zeroWireSource':
+    '来源：Cloudflare Radar · Zero Wire。仅按简报标题与标签匹配，不代表该站点已受影响。',
+  'stack.exposureTitle': '公开变量与密钥暴露',
+  'stack.exposureEmpty':
+    '未在已加载的公开 JS 中发现 NEXT_PUBLIC_ / VITE_ 等变量或高危密钥。',
+  'stack.exposureNames': '公开变量 {count} 个',
+  'stack.exposureSensitive': '敏感配置 {count} 个',
+  'stack.exposureSensitiveNames': '敏感变量名 {count} 个',
+  'stack.exposureSecrets': '疑似密钥 / 敏感值 {count} 个',
+  'stack.exposureMaps': 'source map 引用 {count} 个',
+  'stack.sourceMapWarningTitle': 'Source map 暴露风险',
+  'stack.sourceMapWarningBody':
+    '生产环境公开 .map 文件会暴露未压缩源码、注释、内部接口路径和构建信息。建议关闭生产 source map，或在 CDN / Nginx 中禁止访问 *.map，并移除 sourceMappingURL。',
+  'stack.sourceMapExposed': '可访问',
+  'stack.sourceMapSources': '可访问 · 含源码',
+  'stack.sourceMapUnverified': '未验证',
+  'stack.exposureNoValue': '（值未暴露）',
+  'stack.reveal': '显示完整值',
+  'stack.exposureNote':
+    '仅扫描页面加载的公开 JS。公开变量值会原样展示；密码、密钥、token 等敏感值默认打码，点击「显示完整值」仅在本页展开，不会写入 URL 或发送请求。若只看到名字，说明构建时已替换或运行时未注入。',
+  'stack.exposureSeverity.critical': '严重',
+  'stack.exposureSeverity.high': '高',
+  'stack.exposureSeverity.public': '公开',
   'stack.noVersion': '版本未知',
+  'stack.nextVersionMissing':
+    '未找到 Next.js 版本：页面没有暴露 window.next.version，或运行时脚本被拦截。',
+  'stack.manualTitle': '无法读取 Next.js 版本？',
+  'stack.manualHint':
+    '在目标站点打开 DevTools Console，执行以下命令，把结果填到这里：',
+  'stack.manualPlaceholder': '例如 16.3.2',
+  'stack.manualUse': '使用',
+  'stack.manualInvalid': '请输入类似 16.3.2 的版本号',
+  'stack.manualApplied': '已手动填入 Next.js {version}',
+  'stack.guideTitle': '运维与修复指南',
+  'stack.guideIntro':
+    '如果你负责这个站点，可以按下面的顺序排查、修复并验证。',
+  'stack.guideStep1Title': '1. 升级并验证线上版本',
+  'stack.guideStep1Body':
+    '先在目标站点 Console 执行 window.next?.version，确认线上真实版本；升级后重新构建、部署，再打开线上页面确认版本已经变化。只升级 React 通常不能修复 Next.js 的问题。',
+  'stack.guideStep2Title': '2. 扫描被 403 / 反爬拦截',
+  'stack.guideStep2Body':
+    '给监控出口 IP 或 UA 加白名单，或使用官方 API；不要为了扫描全局关闭 WAF、速率限制或验证码。使用独立 token，最小权限并定期轮换。',
+  'stack.guideStep3Title': '3. 公开变量与密钥',
+  'stack.guideStep3Body':
+    'NEXT_PUBLIC_ / VITE_ 会进入浏览器，不能放数据库密码、私钥或服务端 token。把敏感配置移到服务端；一旦在 JS 中发现疑似密钥，立即轮换并按已泄露处理，同时检查 git 历史和构建日志。',
+  'stack.guideStep4Title': '4. Source map 与调试信息',
+  'stack.guideStep4Body':
+    '生产环境关闭 source map：Next.js 设置 productionBrowserSourceMaps: false，Vite / webpack 设置 build.sourcemap: false；在 CDN / Nginx 禁止访问 *.map，并移除 sourceMappingURL。工具会把可访问的 .map 标为「可访问」或「可访问 · 含源码」。',
+  'stack.guideStep5Title': '5. 跟进版本与漏洞',
+  'stack.guideStep5Body':
+    '对照 npm 最新版本、OSV 和 Cloudflare Zero Wire 简报，优先处理 Critical / High；记录修复版本和验证时间，canary / alpha 不参与自动比较。',
+  'stack.guideChecklistTitle': '上线前检查清单',
+  'stack.guideCheck1': '线上 window.next?.version 已是修复版本',
+  'stack.guideCheck2': '已重新构建并部署，而不是只改本地',
+  'stack.guideCheck3': '疑似密钥已轮换，公开变量中没有敏感值',
+  'stack.guideCheck4': '生产 source map 已关闭或限制访问',
+  'stack.guideCheck5': 'WAF 已对监控放行，但没有全局关闭',
+  'stack.guideCheck6': '修复后重新检测并保存结果',
   'stack.cat.framework': '框架',
   'stack.cat.ui': 'UI 运行时',
   'stack.cat.build': '构建工具',
@@ -686,6 +749,8 @@ const en: Record<MessageKey, string> = {
   'stack.query': 'Check',
   'stack.checking': 'Checking...',
   'stack.loading': 'Fetching HTML and JS through the proxy...',
+  'stack.readerFallback':
+    'The proxy could not read the site directly, so the Reader fallback was used and blocked runtime scripts were recovered where possible. Script-level analysis may still be incomplete.',
   'stack.invalid': 'Enter a valid URL',
   'stack.timeout': 'The request timed out. Try again later.',
   'stack.rateLimit': 'The proxy is rate limiting requests. Try again shortly.',
@@ -717,7 +782,69 @@ const en: Record<MessageKey, string> = {
   'stack.vulnCount': '{count} known vulnerabilities in OSV',
   'stack.versionDisclaimer':
     'Versions come from public page assets and may not match the actual build dependencies. Latest versions come from npm and vulnerability data from OSV; treat both as hints and verify before acting.',
+  'stack.zeroWireTitle': 'Cloudflare Zero Wire intelligence',
+  'stack.zeroWireMore': 'Open Zero Wire',
+  'stack.zeroWireEmpty': 'No Zero Wire briefings match this stack.',
+  'stack.zeroWireMatch': 'Matched {names}',
+  'stack.zeroWireSource':
+    'Source: Cloudflare Radar · Zero Wire. Matching uses briefing titles and tags only; it does not mean the site is affected.',
+  'stack.exposureTitle': 'Public env vars and secret exposure',
+  'stack.exposureEmpty':
+    'No NEXT_PUBLIC_ / VITE_ variables or high-risk secrets were found in the public JS that was loaded.',
+  'stack.exposureNames': '{count} public variables',
+  'stack.exposureSensitive': '{count} sensitive config values',
+  'stack.exposureSensitiveNames': '{count} sensitive variable names',
+  'stack.exposureSecrets': '{count} possible secrets / sensitive values',
+  'stack.exposureMaps': '{count} source map references',
+  'stack.sourceMapWarningTitle': 'Source map exposure risk',
+  'stack.sourceMapWarningBody':
+    'Publishing .map files in production exposes unminified source, comments, internal API paths and build metadata. Disable production source maps, or block *.map at the CDN / Nginx layer and remove sourceMappingURL.',
+  'stack.sourceMapExposed': 'Reachable',
+  'stack.sourceMapSources': 'Reachable · source included',
+  'stack.sourceMapUnverified': 'Unverified',
+  'stack.exposureNoValue': '(value not exposed)',
+  'stack.reveal': 'Reveal full value',
+  'stack.exposureNote':
+    'Only public JS loaded by the page is scanned. Public variable values are shown as-is; passwords, keys and tokens are masked by default. Clicking “Reveal full value” expands the value locally without changing the URL or sending a request. If only a name appears, the value was replaced at build time or not injected at runtime.',
+  'stack.exposureSeverity.critical': 'Critical',
+  'stack.exposureSeverity.high': 'High',
+  'stack.exposureSeverity.public': 'Public',
   'stack.noVersion': 'version unknown',
+  'stack.nextVersionMissing':
+    'Next.js version not found: the page does not expose window.next.version, or the runtime chunk was blocked.',
+  'stack.manualTitle': 'Cannot read the Next.js version?',
+  'stack.manualHint':
+    'Open DevTools Console on the target site, run the command below, and paste the result here:',
+  'stack.manualPlaceholder': 'e.g. 16.3.2',
+  'stack.manualUse': 'Use',
+  'stack.manualInvalid': 'Enter a version like 16.3.2',
+  'stack.manualApplied': 'Manually applied Next.js {version}',
+  'stack.guideTitle': 'Operations & remediation guide',
+  'stack.guideIntro':
+    'If you run this site, work through the steps below to diagnose, fix and verify.',
+  'stack.guideStep1Title': '1. Upgrade and verify the live version',
+  'stack.guideStep1Body':
+    'Run window.next?.version in the target site’s console to confirm the deployed version. After upgrading, rebuild, redeploy, and check the live page again. Upgrading React alone usually does not fix Next.js issues.',
+  'stack.guideStep2Title': '2. Scanning blocked by 403 / bot protection',
+  'stack.guideStep2Body':
+    'Allowlist your monitoring egress IP or user agent, or use an official API. Do not disable WAF, rate limits or CAPTCHAs globally just to scan. Use a dedicated token with least privilege and rotate it.',
+  'stack.guideStep3Title': '3. Public variables and secrets',
+  'stack.guideStep3Body':
+    'NEXT_PUBLIC_ / VITE_ values reach the browser; never put database passwords, private keys or server tokens there. Move sensitive configuration server-side. If a secret is found in JS, rotate it immediately, treat it as leaked, and check git history and build logs.',
+  'stack.guideStep4Title': '4. Source maps and debug data',
+  'stack.guideStep4Body':
+    'Disable source maps in production: set productionBrowserSourceMaps: false in Next.js, and build.sourcemap: false in Vite / webpack. Block *.map at the CDN / Nginx layer and remove sourceMappingURL. The tool marks reachable .map files as “Reachable” or “Reachable · source included”.',
+  'stack.guideStep5Title': '5. Track versions and advisories',
+  'stack.guideStep5Body':
+    'Compare with the latest npm releases, OSV and Cloudflare Zero Wire briefings, and fix Critical / High first. Record the fixed version and verification time; canary / alpha versions are excluded from automatic comparison.',
+  'stack.guideChecklistTitle': 'Pre-deploy checklist',
+  'stack.guideCheck1': 'Live window.next?.version is on a fixed release',
+  'stack.guideCheck2': 'Rebuilt and redeployed, not just changed locally',
+  'stack.guideCheck3':
+    'Suspected secrets rotated; no sensitive values in public variables',
+  'stack.guideCheck4': 'Production source maps disabled or restricted',
+  'stack.guideCheck5': 'WAF allows monitoring without being disabled globally',
+  'stack.guideCheck6': 'Re-checked after the fix and saved the result',
   'stack.cat.framework': 'Framework',
   'stack.cat.ui': 'UI runtime',
   'stack.cat.build': 'Build tool',
