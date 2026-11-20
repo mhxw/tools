@@ -8,6 +8,7 @@ export type ToolId =
   | 'safe'
   | 'stack'
   | 'diff'
+  | 'swap'
   | 'guide'
 export type TopLevelToolId =
   | 'home'
@@ -16,8 +17,15 @@ export type TopLevelToolId =
   | 'safe'
   | 'stack'
   | 'diff'
+  | 'swap'
 export type Eip7702ToolId = 'address' | 'tx' | 'guide'
-export type ReadyToolId = 'eip7702' | 'domain' | 'safe' | 'stack' | 'diff'
+export type ReadyToolId =
+  | 'eip7702'
+  | 'domain'
+  | 'safe'
+  | 'stack'
+  | 'diff'
+  | 'swap'
 
 type ToolBase = {
   icon: string
@@ -91,6 +99,15 @@ export const TOP_LEVEL_TOOLS: ToolDefinition[] = [
     path: '/diff',
   },
   {
+    id: 'swap',
+    status: 'ready',
+    icon: 'SWAP',
+    title: 'tool.swapTitle',
+    description: 'tool.swapDesc',
+    tag: 'tool.swapTag',
+    path: '/swap',
+  },
+  {
     id: 'approvals',
     status: 'coming',
     icon: 'AP',
@@ -118,6 +135,7 @@ export const TOOL_PATHS: Record<ToolId, string> = {
   safe: '/safe',
   stack: '/stack',
   diff: '/diff',
+  swap: '/swap',
   guide: '/eip7702/metamask',
 }
 
@@ -131,6 +149,7 @@ export function toolFromPath(pathname: string): ToolId {
   if (path === '/safe') return 'safe'
   if (path === '/stack') return 'stack'
   if (path === '/diff') return 'diff'
+  if (path === '/swap') return 'swap'
   return 'home'
 }
 
@@ -141,6 +160,7 @@ export function topLevelFromPath(pathname: string): TopLevelToolId {
   if (path === '/safe' || path.startsWith('/safe/')) return 'safe'
   if (path === '/stack' || path.startsWith('/stack/')) return 'stack'
   if (path === '/diff' || path.startsWith('/diff/')) return 'diff'
+  if (path === '/swap' || path.startsWith('/swap/')) return 'swap'
   if (path === '/eip7702' || path.startsWith('/eip7702/')) return 'eip7702'
   return 'home'
 }

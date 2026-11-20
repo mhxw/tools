@@ -13,6 +13,7 @@ export type SeoPage =
   | 'safe'
   | 'stack'
   | 'diff'
+  | 'swap'
   | 'guide'
 
 const PATHS: Record<SeoPage, string> = {
@@ -23,6 +24,7 @@ const PATHS: Record<SeoPage, string> = {
   safe: '/safe',
   stack: '/stack',
   diff: '/diff',
+  swap: '/swap',
   guide: '/eip7702/metamask',
 }
 
@@ -68,6 +70,11 @@ const COPY: Record<Language, Record<SeoPage, Copy>> = {
       description:
         'Compare two blocks of text or code side by side. Highlight added, removed and changed lines with line numbers. Runs entirely in your browser.',
     },
+    swap: {
+      title: 'PancakeSwap BNB Chain Swap (V2 + V3 Best Route)',
+      description:
+        'Compare PancakeSwap V2, all four V3 fee tiers and WBNB / USDT routes on BNB Chain, then approve and swap from your wallet.',
+    },
     guide: {
       title: 'Cancel EIP-7702 Authorization in MetaMask',
       description:
@@ -109,6 +116,11 @@ const COPY: Record<Language, Record<SeoPage, Copy>> = {
       title: '文本与代码比较工具（并排差异）',
       description:
         '并排比较两段文本或代码，逐行高亮新增、删除和修改，显示行号与差异统计，全部在浏览器本地完成。',
+    },
+    swap: {
+      title: 'PancakeSwap BNB Chain 兑换（V2 + V3 最优路由）',
+      description:
+        '比较 BNB Chain 上 PancakeSwap V2、V3 四个费率档与 WBNB / USDT 中转路线，选择最优价格，检查授权并完成兑换。',
     },
     guide: {
       title: '在 MetaMask 中取消 EIP-7702 授权',
