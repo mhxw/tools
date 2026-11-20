@@ -7,10 +7,17 @@ export type ToolId =
   | 'domain'
   | 'safe'
   | 'stack'
+  | 'diff'
   | 'guide'
-export type TopLevelToolId = 'home' | 'eip7702' | 'domain' | 'safe' | 'stack'
+export type TopLevelToolId =
+  | 'home'
+  | 'eip7702'
+  | 'domain'
+  | 'safe'
+  | 'stack'
+  | 'diff'
 export type Eip7702ToolId = 'address' | 'tx' | 'guide'
-export type ReadyToolId = 'eip7702' | 'domain' | 'safe' | 'stack'
+export type ReadyToolId = 'eip7702' | 'domain' | 'safe' | 'stack' | 'diff'
 
 type ToolBase = {
   icon: string
@@ -75,6 +82,15 @@ export const TOP_LEVEL_TOOLS: ToolDefinition[] = [
     path: '/stack',
   },
   {
+    id: 'diff',
+    status: 'ready',
+    icon: 'DIFF',
+    title: 'tool.diffTitle',
+    description: 'tool.diffDesc',
+    tag: 'tool.diffTag',
+    path: '/diff',
+  },
+  {
     id: 'approvals',
     status: 'coming',
     icon: 'AP',
@@ -101,6 +117,7 @@ export const TOOL_PATHS: Record<ToolId, string> = {
   domain: '/domain',
   safe: '/safe',
   stack: '/stack',
+  diff: '/diff',
   guide: '/eip7702/metamask',
 }
 
@@ -113,6 +130,7 @@ export function toolFromPath(pathname: string): ToolId {
   if (path === '/domain') return 'domain'
   if (path === '/safe') return 'safe'
   if (path === '/stack') return 'stack'
+  if (path === '/diff') return 'diff'
   return 'home'
 }
 
@@ -122,6 +140,7 @@ export function topLevelFromPath(pathname: string): TopLevelToolId {
   if (path === '/domain' || path.startsWith('/domain/')) return 'domain'
   if (path === '/safe' || path.startsWith('/safe/')) return 'safe'
   if (path === '/stack' || path.startsWith('/stack/')) return 'stack'
+  if (path === '/diff' || path.startsWith('/diff/')) return 'diff'
   if (path === '/eip7702' || path.startsWith('/eip7702/')) return 'eip7702'
   return 'home'
 }

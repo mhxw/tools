@@ -39,6 +39,7 @@ const zh = {
   'app.navDomain': '域名检查',
   'app.navSafe': 'Safe 多签',
   'app.navStack': '技术栈',
+  'app.navDiff': '文本比较',
   'app.navGuide': '撤销指南',
   'app.explainerTitle': 'EIP-7702 是什么？',
   'app.explainer1Title': '代码委托',
@@ -98,6 +99,10 @@ const zh = {
   'tool.stackDesc':
     '检测网站使用的前端框架、UI 运行时、构建工具与版本，并比对 npm 最新版本和 OSV 已知漏洞。',
   'tool.stackTag': '框架 · 版本 · 漏洞',
+  'tool.diffTitle': '文本比较',
+  'tool.diffDesc':
+    '并排粘贴两段文本或代码，逐行高亮新增、删除和修改，内容只在浏览器本地处理。',
+  'tool.diffTag': '逐行对比 · 本地处理',
   'tool.guideTitle': 'MetaMask 取消授权',
   'tool.guideDesc':
     '当钱包不支持 7702 授权签名时，按步骤在 MetaMask 智能账户中关闭委托。',
@@ -595,6 +600,35 @@ const zh = {
     '签名由 yParity、r、s 三部分组成，不是可打开的链接。完整值如下，可单独复制。',
   'tx.copySignature': '复制完整签名',
   'tx.copyLink': '复制链接',
+
+  'diff.eyebrow': '文本比较',
+  'diff.title': '并排比较两段文本或代码',
+  'diff.copy':
+    '把原始文本粘贴到左侧，修改后的文本粘贴到右侧。差异会逐行高亮，所有内容只在当前浏览器中比较，不会上传，也不会写入网址。',
+  'diff.leftLabel': '原始文本',
+  'diff.rightLabel': '修改后文本',
+  'diff.leftPlaceholder': '在这里粘贴原始文本或代码...',
+  'diff.rightPlaceholder': '在这里粘贴修改后的文本或代码...',
+  'diff.lines': '行数：{count}',
+  'diff.ignoreWhitespace': '忽略空白与缩进',
+  'diff.ignoreCase': '忽略大小写',
+  'diff.wrap': '自动换行',
+  'diff.swap': '交换左右',
+  'diff.clear': '清空',
+  'diff.sample': '填入示例',
+  'diff.added': '新增',
+  'diff.removed': '删除',
+  'diff.changed': '修改',
+  'diff.unchanged': '相同',
+  'diff.identicalRaw': '两侧文本完全一致。',
+  'diff.identicalIgnored': '原文有差异，但按当前选项比较后视为一致。',
+  'diff.empty': '左右两侧都为空。粘贴文本后会自动比较。',
+  'diff.limited': '单侧文本超过 {max} 行，暂时无法比较。请拆分后再试。',
+  'diff.coarse': '文本较大，已使用快速比较，结果可能不够精确。',
+  'diff.privacy': '只在浏览器本地比较，不会上传文本，也不会写入网址。',
+  'diff.legendAdded': '右侧新增',
+  'diff.legendRemoved': '左侧删除',
+  'diff.legendChanged': '修改',
 } as const
 
 export type MessageKey = keyof typeof zh
@@ -629,6 +663,7 @@ const en: Record<MessageKey, string> = {
   'app.navDomain': 'Domain check',
   'app.navSafe': 'Safe multisig',
   'app.navStack': 'Web stack',
+  'app.navDiff': 'Text diff',
   'app.navGuide': 'Revoke guide',
   'app.explainerTitle': 'What is EIP-7702?',
   'app.explainer1Title': 'Code delegation',
@@ -689,6 +724,10 @@ const en: Record<MessageKey, string> = {
   'tool.stackDesc':
     'Detect a site’s frontend frameworks, UI runtimes, build tools and versions, then compare them with the latest npm releases and OSV advisories.',
   'tool.stackTag': 'Frameworks · versions · vulns',
+  'tool.diffTitle': 'Text diff',
+  'tool.diffDesc':
+    'Paste two versions of text or code side by side and highlight added, removed and changed lines. Everything stays in your browser.',
+  'tool.diffTag': 'Line by line · local only',
   'tool.guideTitle': 'Revoke in MetaMask',
   'tool.guideDesc':
     'When your wallet does not expose 7702 authorization signing, disable the delegation inside MetaMask smart accounts.',
@@ -1218,6 +1257,39 @@ const en: Record<MessageKey, string> = {
     'A signature has three parts (yParity, r, s); it is not a clickable link. Full values are shown below and can be copied.',
   'tx.copySignature': 'Copy full signature',
   'tx.copyLink': 'Copy link',
+
+  'diff.eyebrow': 'Text diff',
+  'diff.title': 'Compare two blocks of text or code',
+  'diff.copy':
+    'Paste the original on the left and the edited version on the right. Differences are highlighted line by line. Everything is compared in your browser; nothing is uploaded or written to the URL.',
+  'diff.leftLabel': 'Original',
+  'diff.rightLabel': 'Edited',
+  'diff.leftPlaceholder': 'Paste the original text or code here...',
+  'diff.rightPlaceholder': 'Paste the edited text or code here...',
+  'diff.lines': 'Lines: {count}',
+  'diff.ignoreWhitespace': 'Ignore whitespace',
+  'diff.ignoreCase': 'Ignore case',
+  'diff.wrap': 'Wrap lines',
+  'diff.swap': 'Swap sides',
+  'diff.clear': 'Clear',
+  'diff.sample': 'Load sample',
+  'diff.added': 'Added',
+  'diff.removed': 'Removed',
+  'diff.changed': 'Changed',
+  'diff.unchanged': 'Unchanged',
+  'diff.identicalRaw': 'Both sides are identical.',
+  'diff.identicalIgnored':
+    'The raw text differs, but no differences remain under the current options.',
+  'diff.empty': 'Both sides are empty. Paste text to start comparing.',
+  'diff.limited':
+    'One side has more than {max} lines, which is too large to compare here. Split the text and try again.',
+  'diff.coarse':
+    'The text is large, so a fast approximate comparison was used. Results may be less precise.',
+  'diff.privacy':
+    'Compared locally in your browser. Nothing is uploaded or written to the URL.',
+  'diff.legendAdded': 'Added on the right',
+  'diff.legendRemoved': 'Removed from the left',
+  'diff.legendChanged': 'Changed',
 }
 
 const messages: Record<Language, Record<MessageKey, string>> = { zh, en }

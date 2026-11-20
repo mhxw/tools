@@ -12,6 +12,7 @@ export type SeoPage =
   | 'domain'
   | 'safe'
   | 'stack'
+  | 'diff'
   | 'guide'
 
 const PATHS: Record<SeoPage, string> = {
@@ -21,6 +22,7 @@ const PATHS: Record<SeoPage, string> = {
   domain: '/domain',
   safe: '/safe',
   stack: '/stack',
+  diff: '/diff',
   guide: '/eip7702/metamask',
 }
 
@@ -61,6 +63,11 @@ const COPY: Record<Language, Record<SeoPage, Copy>> = {
       description:
         'Detect the frameworks, UI runtimes, build tools and versions behind a website, then compare them with the latest npm releases and known OSV vulnerabilities.',
     },
+    diff: {
+      title: 'Text & Code Diff Checker (Side-by-Side)',
+      description:
+        'Compare two blocks of text or code side by side. Highlight added, removed and changed lines with line numbers. Runs entirely in your browser.',
+    },
     guide: {
       title: 'Cancel EIP-7702 Authorization in MetaMask',
       description:
@@ -97,6 +104,11 @@ const COPY: Record<Language, Record<SeoPage, Copy>> = {
       title: '前端技术栈检测（Next.js / React / Vue / Vite）',
       description:
         '检测网站使用的前端框架、UI 运行时、构建工具与版本，并比对 npm 最新版本和 OSV 已知漏洞。',
+    },
+    diff: {
+      title: '文本与代码比较工具（并排差异）',
+      description:
+        '并排比较两段文本或代码，逐行高亮新增、删除和修改，显示行号与差异统计，全部在浏览器本地完成。',
     },
     guide: {
       title: '在 MetaMask 中取消 EIP-7702 授权',

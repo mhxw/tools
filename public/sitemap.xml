@@ -74,6 +74,20 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://mhxw.github.io/tools/stack/" />
   </url>
   <url>
+    <loc>https://mhxw.github.io/tools/diff/</loc>
+    <lastmod>2026-11-19</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mhxw.github.io/tools/diff/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://mhxw.github.io/tools/zh/diff/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mhxw.github.io/tools/diff/" />
+  </url>
+  <url>
+    <loc>https://mhxw.github.io/tools/zh/diff/</loc>
+    <lastmod>2026-11-19</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mhxw.github.io/tools/diff/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://mhxw.github.io/tools/zh/diff/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mhxw.github.io/tools/diff/" />
+  </url>
+  <url>
     <loc>https://mhxw.github.io/tools/domain/</loc>
     <lastmod>2026-11-03</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://mhxw.github.io/tools/domain/" />
