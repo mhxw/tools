@@ -299,7 +299,10 @@ export async function fetchGoPlusApprovals(
 
     const payload = (await response.json()) as GoPlusResponse
     if (payload.code !== 1) {
-      throw new ApprovalError('api', payload.message)
+      throw new ApprovalError(
+        payload.code === 4029 ? 'rate-limit' : 'api',
+        payload.message,
+      )
     }
     return payload.result ?? []
   } catch (error) {
