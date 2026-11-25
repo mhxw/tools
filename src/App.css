@@ -3741,3 +3741,436 @@ footer p {
     width: 100%;
   }
 }
+
+/* Token approvals */
+
+.approvals-search {
+  margin-top: 18px;
+}
+
+.approvals-wallet-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.approvals-chain-chip {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 0.64rem;
+  font-weight: 600;
+}
+
+.approvals-owner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 18px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.22);
+  color: var(--muted);
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+}
+
+.approvals-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.approvals-stat {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.approvals-stat strong {
+  display: block;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.approvals-stat span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted-2);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.approvals-stat .approvals-stat-warn {
+  color: var(--accent);
+}
+
+.approvals-stat .approvals-stat-danger {
+  color: var(--danger);
+}
+
+.approvals-note {
+  margin: 10px 0 0;
+  color: var(--muted-2);
+  font-size: 0.74rem;
+  line-height: 1.6;
+}
+
+.approvals-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.approvals-filters {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.24);
+}
+
+.approvals-filters button {
+  border: 0;
+  border-radius: 999px;
+  padding: 7px 14px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 600;
+  transition:
+    background 160ms ease,
+    color 160ms ease;
+}
+
+.approvals-filters button:hover {
+  color: var(--text);
+}
+
+.approvals-filters button.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.approvals-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.approvals-filter-search {
+  width: min(260px, 60vw);
+  padding: 9px 12px;
+  font-size: 0.8rem;
+}
+
+.approvals-table {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.approvals-head,
+.approvals-row {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.1fr) minmax(0, 1.3fr) minmax(0, 0.75fr) 118px auto;
+  grid-template-areas: 'token spender amount date action';
+  gap: 14px;
+}
+
+.approvals-head {
+  padding: 0 16px 2px;
+  color: var(--muted-2);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.approvals-head span:last-child {
+  min-width: 92px;
+}
+
+.approvals-row {
+  align-items: center;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.approvals-row.is-risk {
+  border-color: rgba(255, 107, 107, 0.24);
+}
+
+.approvals-token {
+  grid-area: token;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.approvals-symbol {
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.approvals-address {
+  display: block;
+  overflow: hidden;
+  color: var(--muted-2);
+  font-size: 0.7rem;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+a.approvals-address:hover {
+  color: var(--accent);
+}
+
+.approvals-balance {
+  color: var(--muted-2);
+  font-size: 0.66rem;
+}
+
+.approvals-spender {
+  grid-area: spender;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.approvals-spender-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.approvals-spender-tag {
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--muted);
+  font-size: 0.6rem;
+  font-weight: 500;
+}
+
+.approvals-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 3px;
+}
+
+.approvals-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.chip-danger {
+  border-color: rgba(255, 107, 107, 0.25);
+  background: rgba(255, 107, 107, 0.12);
+  color: #ffb3b3;
+}
+
+.chip-warn {
+  border-color: rgba(240, 185, 11, 0.25);
+  background: var(--accent-soft);
+  color: #ffe39a;
+}
+
+.chip-info {
+  border-color: rgba(122, 168, 255, 0.25);
+  background: var(--info-soft);
+  color: #c9d9ff;
+}
+
+.chip-ok {
+  border-color: rgba(85, 217, 139, 0.25);
+  background: var(--success-soft);
+  color: #b8f5d0;
+}
+
+.approvals-amount {
+  grid-area: amount;
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.approvals-amount small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted-2);
+  font-size: 0.64rem;
+}
+
+.approvals-unlimited {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.approvals-date {
+  grid-area: date;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  color: var(--muted-2);
+  font-size: 0.74rem;
+}
+
+.approvals-tx {
+  align-self: flex-start;
+  margin-left: 0;
+  font-size: 0.66rem;
+}
+
+.approvals-row-actions {
+  grid-area: action;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.approvals-row-status {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.approvals-row-error {
+  color: #ffb3b3;
+}
+
+.approvals-empty {
+  margin-top: 18px;
+  padding: 26px 20px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 14px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.approvals-empty strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.approvals-empty p {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.approvals-source {
+  margin: 16px 0 0;
+  color: var(--muted-2);
+  font-size: 0.7rem;
+  line-height: 1.6;
+}
+
+.approvals-mismatch-btn {
+  margin-top: 8px;
+}
+
+.approvals-explainer {
+  margin-top: 26px;
+}
+
+@media (max-width: 820px) {
+  .approvals-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .approvals-head {
+    display: none;
+  }
+
+  .approvals-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'token action'
+      'spender spender'
+      'amount date';
+    align-items: start;
+  }
+
+  .approvals-date {
+    text-align: right;
+  }
+
+  .approvals-tx {
+    align-self: flex-end;
+  }
+
+  .approvals-row-actions {
+    align-self: start;
+  }
+}
+
+@media (max-width: 560px) {
+  .approvals-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .approvals-toolbar-right {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .approvals-filter-search {
+    width: 100%;
+  }
+
+  .approvals-filters {
+    justify-content: space-between;
+  }
+
+  .approvals-filters button {
+    flex: 1;
+    padding: 7px 8px;
+  }
+
+  .approvals-search {
+    flex-wrap: wrap;
+  }
+
+  .approvals-search .btn {
+    width: 100%;
+  }
+}

@@ -143,4 +143,18 @@
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://mhxw.github.io/tools/zh/ccip/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://mhxw.github.io/tools/ccip/" />
   </url>
+  <url>
+    <loc>https://mhxw.github.io/tools/approvals/</loc>
+    <lastmod>2026-11-25</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mhxw.github.io/tools/approvals/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://mhxw.github.io/tools/zh/approvals/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mhxw.github.io/tools/approvals/" />
+  </url>
+  <url>
+    <loc>https://mhxw.github.io/tools/zh/approvals/</loc>
+    <lastmod>2026-11-25</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mhxw.github.io/tools/approvals/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://mhxw.github.io/tools/zh/approvals/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mhxw.github.io/tools/approvals/" />
+  </url>
 </urlset>

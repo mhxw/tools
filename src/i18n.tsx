@@ -73,10 +73,6 @@ const zh = {
   'home.toolsCopy': '所有工具共用顶部的网络与语言设置。',
   'home.open': '打开工具',
   'home.comingTag': '即将上线',
-  'home.approvalsTitle': '代币授权检测',
-  'home.approvalsDesc':
-    '检查 ERC-20 / NFT 的 approve 授权额度，识别高风险授权并引导撤销。',
-
   'tool.addressTitle': 'EIP-7702 授权检测',
   'tool.eip7702Title': 'EIP-7702',
   'tool.eip7702Desc':
@@ -719,6 +715,7 @@ const zh = {
     '本工具不收取额外费用，只需支付 PancakeSwap 池子本身的费率；也不托管资产。兑换前请确认代币与价格，MEV、滑点和链上拥堵都可能影响成交。',
 
   'app.navCcip': 'CCIP 重试',
+  'app.navApprovals': '授权检测',
   'tool.ccipTitle': 'CCIP 手动重试',
   'tool.ccipDesc':
     '粘贴失败的 CCIP 交易或消息 ID，查看验证状态，并在目标链手动执行，可提高 receiver gas limit。',
@@ -822,6 +819,90 @@ const zh = {
   'ccip.faq3Title': 'Gas 不足',
   'ccip.faq3Body':
     '消息自带的 receiver gas limit 不够时，可以在重试时覆盖成更高的值。这也是“容量不足”类失败最常见的处理方式。',
+
+  'tool.approvalsTitle': '代币授权检测',
+  'tool.approvalsDesc':
+    '扫描 BNB Chain 钱包的 ERC-20 授权，链上校验额度，识别无限与高风险授权并直接撤销。',
+  'tool.approvalsTag': 'BNB Chain · 可撤销',
+  'approvals.eyebrow': 'Token approvals',
+  'approvals.title': '代币授权检测与撤销',
+  'approvals.lede':
+    '输入 BNB Chain 地址，列出仍然有效的 ERC-20 授权。额度会用链上 allowance 二次校验，撤销由钱包签名完成。',
+  'approvals.placeholder': '0x… 钱包地址',
+  'approvals.scan': '扫描授权',
+  'approvals.scanning': '扫描中...',
+  'approvals.hint':
+    '只读扫描；查询会把地址发送给 GoPlus 索引服务。撤销仅对已连接的钱包生效。',
+  'approvals.useWallet': '使用已连接钱包',
+  'approvals.invalidAddress': '请输入有效的 EVM 地址。',
+  'approvals.rateLimit':
+    '查询过于频繁，触发了数据源的限流。请等一分钟后再试。',
+  'approvals.networkError': '网络请求失败，无法获取授权数据。请检查网络后重试。',
+  'approvals.apiError': '授权数据源返回异常，请稍后重试。',
+  'approvals.explorer': '在 BscScan 查看',
+  'approvals.summaryTotal': '有效授权',
+  'approvals.summaryUnlimited': '无限授权',
+  'approvals.summaryRisky': '风险标记',
+  'approvals.summaryTokens': '涉及代币',
+  'approvals.verifyUnavailable':
+    '链上额度校验暂时不可用，下面显示的是索引数据，可能已经过期。请刷新重试。',
+  'approvals.staleNote': '已隐藏 {count} 条链上额度为 0 的历史授权。',
+  'approvals.connectToRevoke':
+    '连接钱包后才能撤销授权。查看他人地址不受影响。',
+  'approvals.ownerMismatch':
+    '当前连接 {connected}，正在查看 {scanned}。撤销只会影响已连接钱包的授权。',
+  'approvals.switchToWallet': '改为查看已连接钱包',
+  'approvals.filterLabel': '筛选授权',
+  'approvals.filterAll': '全部',
+  'approvals.filterUnlimited': '无限授权',
+  'approvals.filterRisk': '风险标记',
+  'approvals.searchPlaceholder': '搜索代币或 spender',
+  'approvals.emptyTitle': '没有发现有效授权',
+  'approvals.emptyBody':
+    '该地址目前没有被索引到的 ERC-20 授权。注意：第三方索引不保证 100% 完整。',
+  'approvals.noMatch': '没有符合当前筛选条件的授权。',
+  'approvals.colToken': '代币',
+  'approvals.colSpender': 'Spender',
+  'approvals.colAmount': '额度',
+  'approvals.colApproved': '授权时间',
+  'approvals.balance': '余额',
+  'approvals.chipUnlimited': '无限',
+  'approvals.chipMalicious': '恶意 spender',
+  'approvals.chipTokenMalicious': '恶意代币',
+  'approvals.chipDoubt': '可疑',
+  'approvals.chipUnverified': '额度未校验',
+  'approvals.chipTokenUnverified': '代币未验证',
+  'approvals.chipUnverifiedHint':
+    '链上 allowance 读取失败，可能是非标准代币或已暂停的合约。',
+  'approvals.chipIndexed': '索引数据',
+  'approvals.chipTrusted': '可信',
+  'approvals.viewTx': '交易',
+  'approvals.revoke': '撤销',
+  'approvals.revokeSimulating': '模拟中...',
+  'approvals.revokeSending': '等待签名...',
+  'approvals.revokePending': '确认中...',
+  'approvals.revokeSuccess': '已撤销',
+  'approvals.revokeSuccessNote': '已撤销 {token} 的授权。',
+  'approvals.revokeRetry': '重试撤销',
+  'approvals.switchAndRevoke': '切换网络并撤销',
+  'approvals.revokePendingLink': '在 BscScan 查看交易',
+  'approvals.revokeRejected': '已取消钱包签名。',
+  'approvals.revokeInsufficient': 'BNB 余额不足，无法支付撤销交易的 gas。',
+  'approvals.revokeStill':
+    '交易已确认，但链上额度仍为 {amount}。代币可能限制了 approve，请重试或改用其他方式。',
+  'approvals.revokeFailed': '撤销失败：{message}',
+  'approvals.sourceNote':
+    '数据源：GoPlus Security 授权索引 + BNB Chain 链上 allowance 校验。第三方索引可能遗漏授权；页面不会访问私钥，撤销交易由钱包签名。',
+  'approvals.faqTitle': '关于授权与撤销',
+  'approvals.faq1Title': '数据从哪来？',
+  'approvals.faq1Body':
+    '先用 GoPlus 的公开授权索引找出候选 spender，再通过 BSC RPC 的 multicall 读取每个 (代币, spender) 的 allowance，过滤已归零的记录。索引可能不完整，重要资产建议再用 BscScan 核对。',
+  'approvals.faq2Title': '为什么无限授权危险？',
+  'approvals.faq2Body':
+    'approve 给 spender 无限额度后，只要该合约存在漏洞或被攻破，它就能转走你该代币的全部余额。常见 DEX / Permit2 需要授权，但不再使用时应当撤销。',
+  'approvals.faq3Title': '撤销时要注意什么？',
+  'approvals.faq3Body':
+    '撤销是一笔链上交易，需要 BNB 支付 gas。默认调用 approve(spender, 0)；少数代币不支持时回退到 decreaseAllowance。Permit2 条目撤销的是代币对 Permit2 合约的外层额度，会同时阻断其内部 router 子授权。',
 } as const
 
 export type MessageKey = keyof typeof zh
@@ -890,10 +971,6 @@ const en: Record<MessageKey, string> = {
   'home.toolsCopy': 'All tools share the network and language settings above.',
   'home.open': 'Open tool',
   'home.comingTag': 'Coming soon',
-  'home.approvalsTitle': 'Token approval checker',
-  'home.approvalsDesc':
-    'Inspect ERC-20 / NFT approve allowances, spot risky approvals and guide users to revoke them.',
-
   'tool.addressTitle': 'EIP-7702 delegation checker',
   'tool.eip7702Title': 'EIP-7702',
   'tool.eip7702Desc':
@@ -1581,6 +1658,7 @@ const en: Record<MessageKey, string> = {
     'This tool takes no extra fee; you only pay the PancakeSwap pool fee, and it never holds funds. Verify the token and price before swapping; MEV, slippage and congestion can affect execution.',
 
   'app.navCcip': 'CCIP Retry',
+  'app.navApprovals': 'Approvals',
   'tool.ccipTitle': 'CCIP Manual Retry',
   'tool.ccipDesc':
     'Paste a failed CCIP transaction or message ID, inspect verification, and retry execution on the destination chain with a higher receiver gas limit.',
@@ -1691,6 +1769,94 @@ const en: Record<MessageKey, string> = {
   'ccip.faq3Title': 'Not enough gas',
   'ccip.faq3Body':
     'When the receiver gas limit carried by the message is too low, override it with a higher value on retry. This is the usual fix for “insufficient capacity” style failures.',
+
+  'tool.approvalsTitle': 'Token approvals',
+  'tool.approvalsDesc':
+    'Scan a BNB Chain wallet for ERC-20 approvals, verify allowances on-chain, flag unlimited or risky spenders, and revoke from your wallet.',
+  'tool.approvalsTag': 'BNB Chain · revocable',
+  'approvals.eyebrow': 'Token approvals',
+  'approvals.title': 'Approval checker & revoke',
+  'approvals.lede':
+    'Enter a BNB Chain address to list active ERC-20 approvals. Every allowance is re-checked on-chain, and revokes are signed by your wallet.',
+  'approvals.placeholder': '0x… wallet address',
+  'approvals.scan': 'Scan approvals',
+  'approvals.scanning': 'Scanning...',
+  'approvals.hint':
+    'Read-only scan. The address is sent to the GoPlus index. Revoking only affects the connected wallet.',
+  'approvals.useWallet': 'Use connected wallet',
+  'approvals.invalidAddress': 'Enter a valid EVM address.',
+  'approvals.rateLimit':
+    'The data source is rate limiting this IP. Wait a minute and try again.',
+  'approvals.networkError':
+    'The request failed. Check your network and retry.',
+  'approvals.apiError':
+    'The approval index returned an error. Try again shortly.',
+  'approvals.explorer': 'View on BscScan',
+  'approvals.summaryTotal': 'Active approvals',
+  'approvals.summaryUnlimited': 'Unlimited',
+  'approvals.summaryRisky': 'Flagged',
+  'approvals.summaryTokens': 'Tokens',
+  'approvals.verifyUnavailable':
+    'On-chain verification is unavailable, so the indexer values below may be stale. Refresh to retry.',
+  'approvals.staleNote':
+    '{count} historical approvals were hidden because the on-chain allowance is already 0.',
+  'approvals.connectToRevoke':
+    'Connect a wallet to revoke. Viewing another address is still read-only.',
+  'approvals.ownerMismatch':
+    'Connected as {connected} but viewing {scanned}. Revoking only affects the connected wallet.',
+  'approvals.switchToWallet': 'View connected wallet instead',
+  'approvals.filterLabel': 'Filter approvals',
+  'approvals.filterAll': 'All',
+  'approvals.filterUnlimited': 'Unlimited',
+  'approvals.filterRisk': 'Flagged',
+  'approvals.searchPlaceholder': 'Search token or spender',
+  'approvals.emptyTitle': 'No active approvals found',
+  'approvals.emptyBody':
+    'The indexer reports no ERC-20 approvals for this address. Third-party indexes are not guaranteed to be complete.',
+  'approvals.noMatch': 'No approvals match the current filter.',
+  'approvals.colToken': 'Token',
+  'approvals.colSpender': 'Spender',
+  'approvals.colAmount': 'Allowance',
+  'approvals.colApproved': 'Approved',
+  'approvals.balance': 'Balance',
+  'approvals.chipUnlimited': 'Unlimited',
+  'approvals.chipMalicious': 'Malicious spender',
+  'approvals.chipTokenMalicious': 'Malicious token',
+  'approvals.chipDoubt': 'Flagged',
+  'approvals.chipUnverified': 'Unverified',
+  'approvals.chipTokenUnverified': 'Unverified token',
+  'approvals.chipUnverifiedHint':
+    'The on-chain allowance read failed. The token may be non-standard or paused.',
+  'approvals.chipIndexed': 'Indexer data',
+  'approvals.chipTrusted': 'Trusted',
+  'approvals.viewTx': 'Tx',
+  'approvals.revoke': 'Revoke',
+  'approvals.revokeSimulating': 'Simulating...',
+  'approvals.revokeSending': 'Confirm in wallet...',
+  'approvals.revokePending': 'Confirming...',
+  'approvals.revokeSuccess': 'Revoked',
+  'approvals.revokeSuccessNote': '{token} approval revoked.',
+  'approvals.revokeRetry': 'Retry revoke',
+  'approvals.switchAndRevoke': 'Switch chain & revoke',
+  'approvals.revokePendingLink': 'View transaction on BscScan',
+  'approvals.revokeRejected': 'Signature request rejected.',
+  'approvals.revokeInsufficient':
+    'Not enough BNB to pay gas for the revoke.',
+  'approvals.revokeStill':
+    'The transaction confirmed but the allowance is still {amount}. This token may restrict approve; retry or revoke another way.',
+  'approvals.revokeFailed': 'Revoke failed: {message}',
+  'approvals.sourceNote':
+    'Source: GoPlus Security approval index, verified against on-chain allowances on BNB Chain. Third-party indexes can miss approvals. The page never touches private keys; your wallet signs every revoke.',
+  'approvals.faqTitle': 'About approvals and revoking',
+  'approvals.faq1Title': 'Where does the data come from?',
+  'approvals.faq1Body':
+    'GoPlus supplies candidate spenders, then a multicall against BSC RPC reads the allowance for each (token, spender) pair and drops entries that are already zero. Indexes can be incomplete, so cross-check high-value assets on BscScan.',
+  'approvals.faq2Title': 'Why is an unlimited approval risky?',
+  'approvals.faq2Body':
+    'An unlimited approve lets the spender move your entire balance of that token if the contract is exploited or compromised. DEX routers and Permit2 often need approvals, but unused ones should be revoked.',
+  'approvals.faq3Title': 'What happens when I revoke?',
+  'approvals.faq3Body':
+    'A revoke is an on-chain transaction and costs BNB gas. It calls approve(spender, 0) and falls back to decreaseAllowance for tokens that reject a zero approval. Permit2 rows revoke the token-level allowance to Permit2, which also blocks its router sub-approvals.',
 }
 
 const messages: Record<Language, Record<MessageKey, string>> = { zh, en }

@@ -15,6 +15,7 @@ export type SeoPage =
   | 'diff'
   | 'swap'
   | 'ccip'
+  | 'approvals'
   | 'guide'
 
 const PATHS: Record<SeoPage, string> = {
@@ -27,6 +28,7 @@ const PATHS: Record<SeoPage, string> = {
   diff: '/diff',
   swap: '/swap',
   ccip: '/ccip',
+  approvals: '/approvals',
   guide: '/eip7702/metamask',
 }
 
@@ -82,6 +84,11 @@ const COPY: Record<Language, Record<SeoPage, Copy>> = {
       description:
         'Paste a failed Chainlink CCIP transaction or message ID, inspect verification and the previous revert, then retry execution on the destination chain with a higher gas limit.',
     },
+    approvals: {
+      title: 'BSC Token Approval Checker & Revoke Tool',
+      description:
+        'Scan a BNB Chain wallet for active ERC-20 approvals, spot unlimited or risky spenders, verify allowances on-chain, and revoke them from your wallet.',
+    },
     guide: {
       title: 'Cancel EIP-7702 Authorization in MetaMask',
       description:
@@ -133,6 +140,11 @@ const COPY: Record<Language, Record<SeoPage, Copy>> = {
       title: 'CCIP 跨链消息手动执行与失败重试',
       description:
         '粘贴失败的 Chainlink CCIP 交易或消息 ID，查看验证进度与上次 revert 原因，在目标链手动执行并提高 receiver gas limit。',
+    },
+    approvals: {
+      title: 'BSC 代币授权检测与撤销工具',
+      description:
+        '扫描 BNB Chain 钱包的 ERC-20 授权，识别无限授权与高风险 spender，链上校验额度后直接从钱包撤销。',
     },
     guide: {
       title: '在 MetaMask 中取消 EIP-7702 授权',

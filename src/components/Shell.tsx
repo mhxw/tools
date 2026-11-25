@@ -28,6 +28,17 @@ const NAV: Array<{ id: TopLevelToolId; label: MessageKey; path: string }> = [
   { id: 'diff', label: 'app.navDiff', path: '/diff' },
   { id: 'swap', label: 'app.navSwap', path: '/swap' },
   { id: 'ccip', label: 'app.navCcip', path: '/ccip' },
+  { id: 'approvals', label: 'app.navApprovals', path: '/approvals' },
+]
+
+// These tools are single-chain or do not use the shared network selector.
+const HIDE_NETWORK_SELECT: TopLevelToolId[] = [
+  'domain',
+  'stack',
+  'diff',
+  'swap',
+  'ccip',
+  'approvals',
 ]
 
 export function Shell({ children }: { children: ReactNode }) {
@@ -83,11 +94,7 @@ export function Shell({ children }: { children: ReactNode }) {
             </Link>
           </div>
 
-          {activeTopLevel !== 'domain' &&
-            activeTopLevel !== 'stack' &&
-            activeTopLevel !== 'diff' &&
-            activeTopLevel !== 'swap' &&
-            activeTopLevel !== 'ccip' && (
+          {!HIDE_NETWORK_SELECT.includes(activeTopLevel) && (
             <label className="network-select-wrap">
               <select
                 className="network-select"
