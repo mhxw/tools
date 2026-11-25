@@ -9,6 +9,7 @@ export type ToolId =
   | 'stack'
   | 'diff'
   | 'swap'
+  | 'ccip'
   | 'guide'
 export type TopLevelToolId =
   | 'home'
@@ -18,6 +19,7 @@ export type TopLevelToolId =
   | 'stack'
   | 'diff'
   | 'swap'
+  | 'ccip'
 export type Eip7702ToolId = 'address' | 'tx' | 'guide'
 export type ReadyToolId =
   | 'eip7702'
@@ -26,6 +28,7 @@ export type ReadyToolId =
   | 'stack'
   | 'diff'
   | 'swap'
+  | 'ccip'
 
 type ToolBase = {
   icon: string
@@ -108,6 +111,15 @@ export const TOP_LEVEL_TOOLS: ToolDefinition[] = [
     path: '/swap',
   },
   {
+    id: 'ccip',
+    status: 'ready',
+    icon: 'CCIP',
+    title: 'tool.ccipTitle',
+    description: 'tool.ccipDesc',
+    tag: 'tool.ccipTag',
+    path: '/ccip',
+  },
+  {
     id: 'approvals',
     status: 'coming',
     icon: 'AP',
@@ -136,6 +148,7 @@ export const TOOL_PATHS: Record<ToolId, string> = {
   stack: '/stack',
   diff: '/diff',
   swap: '/swap',
+  ccip: '/ccip',
   guide: '/eip7702/metamask',
 }
 
@@ -150,6 +163,7 @@ export function toolFromPath(pathname: string): ToolId {
   if (path === '/stack') return 'stack'
   if (path === '/diff') return 'diff'
   if (path === '/swap') return 'swap'
+  if (path === '/ccip') return 'ccip'
   return 'home'
 }
 
@@ -161,6 +175,7 @@ export function topLevelFromPath(pathname: string): TopLevelToolId {
   if (path === '/stack' || path.startsWith('/stack/')) return 'stack'
   if (path === '/diff' || path.startsWith('/diff/')) return 'diff'
   if (path === '/swap' || path.startsWith('/swap/')) return 'swap'
+  if (path === '/ccip' || path.startsWith('/ccip/')) return 'ccip'
   if (path === '/eip7702' || path.startsWith('/eip7702/')) return 'eip7702'
   return 'home'
 }

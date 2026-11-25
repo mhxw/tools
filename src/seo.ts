@@ -14,6 +14,7 @@ export type SeoPage =
   | 'stack'
   | 'diff'
   | 'swap'
+  | 'ccip'
   | 'guide'
 
 const PATHS: Record<SeoPage, string> = {
@@ -25,6 +26,7 @@ const PATHS: Record<SeoPage, string> = {
   stack: '/stack',
   diff: '/diff',
   swap: '/swap',
+  ccip: '/ccip',
   guide: '/eip7702/metamask',
 }
 
@@ -71,9 +73,14 @@ const COPY: Record<Language, Record<SeoPage, Copy>> = {
         'Compare two blocks of text or code side by side. Highlight added, removed and changed lines with line numbers. Runs entirely in your browser.',
     },
     swap: {
-      title: 'PancakeSwap BNB Chain Swap (V2 + V3 Best Route)',
+      title: 'PancakeSwap BNB Chain Swap (V2 + V3 + Infinity)',
       description:
-        'Compare PancakeSwap V2, all four V3 fee tiers and WBNB / USDT routes on BNB Chain, then approve and swap from your wallet.',
+        'Compare PancakeSwap V2, V3 fee tiers and Infinity CL pools on BNB Chain, pin a pool by ID, then approve and swap from your wallet.',
+    },
+    ccip: {
+      title: 'CCIP Manual Execution & Failed Message Retry',
+      description:
+        'Paste a failed Chainlink CCIP transaction or message ID, inspect verification and the previous revert, then retry execution on the destination chain with a higher gas limit.',
     },
     guide: {
       title: 'Cancel EIP-7702 Authorization in MetaMask',
@@ -118,9 +125,14 @@ const COPY: Record<Language, Record<SeoPage, Copy>> = {
         '并排比较两段文本或代码，逐行高亮新增、删除和修改，显示行号与差异统计，全部在浏览器本地完成。',
     },
     swap: {
-      title: 'PancakeSwap BNB Chain 兑换（V2 + V3 最优路由）',
+      title: 'PancakeSwap BNB Chain 兑换（V2 + V3 + Infinity 最优路由）',
       description:
-        '比较 BNB Chain 上 PancakeSwap V2、V3 四个费率档与 WBNB / USDT 中转路线，选择最优价格，检查授权并完成兑换。',
+        '比较 BNB Chain 上 PancakeSwap V2、V3 费率档与 Infinity CL 池，可按池 ID 锁定，检查授权后完成兑换。',
+    },
+    ccip: {
+      title: 'CCIP 跨链消息手动执行与失败重试',
+      description:
+        '粘贴失败的 Chainlink CCIP 交易或消息 ID，查看验证进度与上次 revert 原因，在目标链手动执行并提高 receiver gas limit。',
     },
     guide: {
       title: '在 MetaMask 中取消 EIP-7702 授权',

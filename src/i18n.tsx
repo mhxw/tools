@@ -106,8 +106,8 @@ const zh = {
   'tool.diffTag': '逐行对比 · 本地处理',
   'tool.swapTitle': 'PancakeSwap 兑换',
   'tool.swapDesc':
-    '在 BNB Chain 上比较 PancakeSwap V2、V3 与 WBNB / USDT 中转路由，选择最优价格，检查授权并完成兑换。',
-  'tool.swapTag': 'V2 · V3 · 最优路由',
+    '在 BNB Chain 上比较 PancakeSwap V2、V3 与 Infinity CL 池，选择最优价格，检查授权并完成兑换。',
+  'tool.swapTag': 'V2 · V3 · Infinity',
   'tool.guideTitle': 'MetaMask 取消授权',
   'tool.guideDesc':
     '当钱包不支持 7702 授权签名时，按步骤在 MetaMask 智能账户中关闭委托。',
@@ -638,7 +638,7 @@ const zh = {
   'swap.eyebrow': 'PancakeSwap',
   'swap.title': '在 BNB Chain 上找最优价格并兑换',
   'swap.lede':
-    '输入数量后自动比较 V2、V3 四个费率档，以及经 WBNB 或 USDT 中转的路线。报价在本地计算，交易由钱包签名。',
+    '输入数量后自动比较 V2、V3 费率档与 Infinity CL 池，以及经 WBNB 或 USDT 中转的路线；也可以粘贴池 ID 锁定单个池。报价在本地计算，交易由钱包签名。',
   'swap.from': '支付',
   'swap.to': '获得',
   'swap.amount': '数量',
@@ -689,6 +689,17 @@ const zh = {
   'swap.urlChainError': '链接中的网络不是 BNB Chain，已按 BSC 显示。',
   'swap.urlTokenError': '链接中的代币 {address} 无法读取，已使用默认代币。',
   'swap.urlInvalidToken': '链接中的代币地址无效，已使用默认代币。',
+  'swap.poolPinTitle': 'Infinity 池（可选）',
+  'swap.poolPinHint':
+    '粘贴 PancakeSwap Infinity pool ID 或包含该池的交易哈希即可锁定这个池；留空则自动寻找最优路由。',
+  'swap.poolPlaceholder': '0x… pool ID 或交易哈希',
+  'swap.poolClear': '清除',
+  'swap.poolLoading': '正在读取 Infinity 池...',
+  'swap.poolInvalid': '池 ID 或交易哈希格式无效（需要 32 字节十六进制）。',
+  'swap.poolNotFound': '找不到这个 Infinity 池，请检查 ID 或交易哈希。',
+  'swap.poolBinUnsupported': '暂不支持 Infinity Bin 池，请使用 CL 池。',
+  'swap.poolMismatch': '该池不包含当前选择的代币对。',
+  'swap.poolLocked': '已锁定 Infinity 池 {id} · {fee}',
   'swap.contractsLabel': '合约：',
   'swap.rpcTitle': '防 MEV 节点',
   'swap.rpcDesc':
@@ -706,6 +717,111 @@ const zh = {
   'swap.rpcError': '添加失败：{message}。也可以复制地址手动添加。',
   'swap.disclaimer':
     '本工具不收取额外费用，只需支付 PancakeSwap 池子本身的费率；也不托管资产。兑换前请确认代币与价格，MEV、滑点和链上拥堵都可能影响成交。',
+
+  'app.navCcip': 'CCIP 重试',
+  'tool.ccipTitle': 'CCIP 手动重试',
+  'tool.ccipDesc':
+    '粘贴失败的 CCIP 交易或消息 ID，查看验证状态，并在目标链手动执行，可提高 receiver gas limit。',
+  'tool.ccipTag': '跨链',
+  'ccip.eyebrow': 'Chainlink CCIP',
+  'ccip.title': '跨链消息手动执行',
+  'ccip.lede':
+    '粘贴一条 CCIP 交易哈希（源链发送或目标链执行都可以）或消息 ID。工具会读取消息、验证进度和执行参数，再由你在目标链发起手动执行。手动执行无需许可，消息费用已在源链支付，不会重复收费。',
+  'ccip.placeholder': '0x… 交易哈希或 CCIP 消息 ID',
+  'ccip.lookup': '查询',
+  'ccip.searching': '查询中…',
+  'ccip.hint':
+    '支持交易哈希、CCIP 消息 ID 或 Explorer 链接。查询只调用 chain.link 的公开 API，私钥始终留在钱包里。',
+  'ccip.invalidInput': '请输入 0x 开头的 32 字节哈希或消息 ID。',
+  'ccip.notFound':
+    '没有找到对应的 CCIP 消息。请确认哈希属于 CCIP 交易，或改用消息 ID。',
+  'ccip.networkError': '网络请求失败，请检查网络后重试。',
+  'ccip.apiError': 'CCIP API 暂时不可用，请稍后重试。',
+  'ccip.from': '源链',
+  'ccip.to': '目标链',
+  'ccip.alreadyDone': '该消息已经在目标链执行成功，无需重试。',
+  'ccip.v1Unsupported':
+    '这是 CCIP 1.x 的消息。1.x 需要 Merkle 证明，本页只支持 2.0 及以上；请在 CCIP Explorer 中点击 “Trigger Manual Execution”。',
+  'ccip.inputsUnavailable':
+    '读取执行参数失败（{message}）。消息可能还在验证中，或 API 暂时不可用。',
+  'ccip.unverified': '验证还未完成，暂时不能执行。验证完成后刷新即可。',
+  'ccip.prevFailure': '上次执行失败的原因',
+  'ccip.truncatedError':
+    'OffRamp 的返回数据缓冲区截断了 revert 内容，只能识别错误类型，看不到具体的报错文本。',
+  'ccip.messageId': '消息 ID',
+  'ccip.explorer': 'CCIP Explorer',
+  'ccip.sender': '发送方（源链）',
+  'ccip.receiver': '接收方（目标链）',
+  'ccip.offramp': 'OffRamp',
+  'ccip.gasLimit': '原始 gas limit',
+  'ccip.version': 'Lane 版本',
+  'ccip.messageStatus': '消息状态',
+  'ccip.sourceTx': '源链交易',
+  'ccip.destTx': '目标链交易',
+  'ccip.execTitle': '在目标链执行',
+  'ccip.execDesc':
+    '手动执行是无需许可的：任何人都可以代付目标链 gas 来触发。发送前会先用 eth_call 模拟一次。',
+  'ccip.switchChain': '切换到 {chain}',
+  'ccip.switching': '切换中…',
+  'ccip.gasOverride': 'Gas limit 覆盖',
+  'ccip.gasOriginal': '原始',
+  'ccip.gasDouble': '2×',
+  'ccip.gasHint':
+    '留空则使用消息原始 gas limit（{gas}）。提高它可以解决接收方执行时 Gas 不足的问题；不能低于原始值，最高 4,294,967,295。',
+  'ccip.gasInvalid': 'Gas limit 必须是 0 到 4,294,967,295 之间的整数。',
+  'ccip.gasTooLow': 'Gas limit 不能低于消息原始值 {min}。',
+  'ccip.execute': '模拟并执行',
+  'ccip.executed': '已执行',
+  'ccip.executing': '等待钱包确认…',
+  'ccip.simulating': '模拟执行中…',
+  'ccip.confirming': '等待链上确认…',
+  'ccip.simFailed': '模拟失败，未发送交易：{message}',
+  'ccip.txPending': '交易已提交，等待链上确认…',
+  'ccip.txTimeout':
+    '交易已提交，但两分钟内没有收到回执。可在区块浏览器查看，或刷新页面重新查询消息状态。',
+  'ccip.txSuccess': '手动执行成功，消息已完成。',
+  'ccip.txReverted':
+    '交易已上链但执行失败。若是接收方 revert，提高 gas limit 后可以再试。',
+  'ccip.viewTx': '在区块浏览器查看',
+  'ccip.advanced': '高级信息',
+  'ccip.ccvs': '验证者（CCV）',
+  'ccip.ccvCount': 'CCV 数据条数',
+  'ccip.encodedLength': 'encodedMessage 大小',
+  'ccip.calldataLength': 'calldata 大小',
+  'ccip.onchainState': '链上状态码',
+  'ccip.rejected': '已取消钱包签名',
+  'ccip.insufficientFunds': '目标链原生代币不足，无法支付 gas',
+  'ccip.sendFailed': '发送失败：{message}',
+  'ccip.switchFailed': '切换网络失败：{message}',
+  'ccip.calldataFailed': '无法构造 execute calldata，请刷新后重试。',
+  'ccip.statusUnknown': '未知',
+  'ccip.statusUntouched': '未执行',
+  'ccip.statusInProgress': '执行中',
+  'ccip.statusSuccess': '已成功',
+  'ccip.statusFailed': '执行失败',
+  'ccip.statusPending': '等待验证 / 未执行',
+  'ccip.reasonHintReceiver':
+    '接收方合约在接收消息时 revert。如果是 Gas 不足，提高 gas limit 后重试；如果是业务逻辑报错，需要接收方处理。',
+  'ccip.reasonHintToken':
+    '代币转账处理失败，通常是代币池或接收方限制了转账。',
+  'ccip.reasonHintGas': 'OffRamp 分配的回调 gas 不足，提高 gas limit 后重试。',
+  'ccip.reasonHintGasLimit': 'gas limit 覆盖值低于消息原始值，请调高。',
+  'ccip.reasonHintNoProgress':
+    '重试没有推进消息状态：接收方仍然 revert。请检查上面的具体原因。',
+  'ccip.reasonHintCursed':
+    '该源链当前被 RMN 暂停（cursed），需要等 Chainlink 解除后才能执行。',
+  'ccip.reasonHintNotCommitted':
+    'Merkle root 还未提交，说明验证还没完成。',
+  'ccip.faqTitle': '什么时候需要手动执行？',
+  'ccip.faq1Title': '自动执行失败',
+  'ccip.faq1Body':
+    '接收方合约处理消息时 revert（例如 Gas 不足或业务逻辑报错），消息状态变为 FAILURE。此时任何人都可以重试，且不会重复收费。',
+  'ccip.faq2Title': '长时间未执行',
+  'ccip.faq2Body':
+    '验证已完成，但执行队列还没处理。手动触发可以立刻推进，gas 由调用者承担。',
+  'ccip.faq3Title': 'Gas 不足',
+  'ccip.faq3Body':
+    '消息自带的 receiver gas limit 不够时，可以在重试时覆盖成更高的值。这也是“容量不足”类失败最常见的处理方式。',
 } as const
 
 export type MessageKey = keyof typeof zh
@@ -808,8 +924,8 @@ const en: Record<MessageKey, string> = {
   'tool.diffTag': 'Line by line · local only',
   'tool.swapTitle': 'PancakeSwap swap',
   'tool.swapDesc':
-    'Compare PancakeSwap V2, V3 and WBNB / USDT-intermediated routes on BNB Chain, pick the best price, check approvals and swap.',
-  'tool.swapTag': 'V2 · V3 · best route',
+    'Compare PancakeSwap V2, V3 and Infinity CL pools on BNB Chain, pick the best price, check approvals and swap.',
+  'tool.swapTag': 'V2 · V3 · Infinity',
   'tool.guideTitle': 'Revoke in MetaMask',
   'tool.guideDesc':
     'When your wallet does not expose 7702 authorization signing, disable the delegation inside MetaMask smart accounts.',
@@ -1376,7 +1492,7 @@ const en: Record<MessageKey, string> = {
   'swap.eyebrow': 'PancakeSwap',
   'swap.title': 'Find the best BNB Chain route and swap',
   'swap.lede':
-    'Enter an amount to compare V2, all four V3 fee tiers, and routes through WBNB or USDT. Quotes are computed locally; your wallet signs the trade.',
+    'Enter an amount to compare V2, V3 fee tiers and Infinity CL pools, including routes through WBNB or USDT. Pin a pool by ID if you want. Quotes are computed locally; your wallet signs the trade.',
   'swap.from': 'From',
   'swap.to': 'To',
   'swap.amount': 'Amount',
@@ -1431,6 +1547,20 @@ const en: Record<MessageKey, string> = {
     'Could not read token {address} from the link; using a default instead.',
   'swap.urlInvalidToken':
     'The token address in the link is invalid; using defaults instead.',
+  'swap.poolPinTitle': 'Infinity pool (optional)',
+  'swap.poolPinHint':
+    'Paste a PancakeSwap Infinity pool ID or a transaction that touches one to pin that pool. Leave empty to search all routes.',
+  'swap.poolPlaceholder': '0x… pool ID or transaction hash',
+  'swap.poolClear': 'Clear',
+  'swap.poolLoading': 'Reading the Infinity pool...',
+  'swap.poolInvalid':
+    'Invalid pool ID or transaction hash (expected 32-byte hex).',
+  'swap.poolNotFound':
+    'No Infinity pool found for that ID or transaction hash.',
+  'swap.poolBinUnsupported':
+    'Infinity bin pools are not supported yet. Use a CL pool.',
+  'swap.poolMismatch': 'That pool does not contain the selected token pair.',
+  'swap.poolLocked': 'Pinned Infinity pool {id} · {fee}',
   'swap.contractsLabel': 'Contracts:',
   'swap.rpcTitle': 'Anti-MEV RPC',
   'swap.rpcDesc':
@@ -1449,6 +1579,118 @@ const en: Record<MessageKey, string> = {
     'Could not add the network: {message}. You can also copy the URL and add it manually.',
   'swap.disclaimer':
     'This tool takes no extra fee; you only pay the PancakeSwap pool fee, and it never holds funds. Verify the token and price before swapping; MEV, slippage and congestion can affect execution.',
+
+  'app.navCcip': 'CCIP Retry',
+  'tool.ccipTitle': 'CCIP Manual Retry',
+  'tool.ccipDesc':
+    'Paste a failed CCIP transaction or message ID, inspect verification, and retry execution on the destination chain with a higher receiver gas limit.',
+  'tool.ccipTag': 'Bridge',
+  'ccip.eyebrow': 'Chainlink CCIP',
+  'ccip.title': 'Manual cross-chain execution',
+  'ccip.lede':
+    'Paste a CCIP transaction hash (source send or destination receipt) or a message ID. The tool reads the message, verification progress and execution inputs, then lets you trigger manual execution on the destination chain. Manual execution is permissionless and never charges the message fee twice.',
+  'ccip.placeholder': '0x… transaction hash or CCIP message ID',
+  'ccip.lookup': 'Inspect',
+  'ccip.searching': 'Inspecting…',
+  'ccip.hint':
+    'Accepts a transaction hash, a CCIP message ID or an explorer link. Lookups only call the public chain.link API; private keys stay in your wallet.',
+  'ccip.invalidInput': 'Enter a 0x-prefixed 32-byte hash or message ID.',
+  'ccip.notFound':
+    'No CCIP message found. Make sure the hash belongs to a CCIP transaction, or paste the message ID instead.',
+  'ccip.networkError': 'Network request failed. Check your connection and retry.',
+  'ccip.apiError': 'The CCIP API is unavailable right now. Try again shortly.',
+  'ccip.from': 'Source',
+  'ccip.to': 'Destination',
+  'ccip.alreadyDone':
+    'This message has already executed successfully on the destination chain.',
+  'ccip.v1Unsupported':
+    'This is a CCIP 1.x message. 1.x needs Merkle proofs, so this page only supports 2.0+. Use “Trigger Manual Execution” in CCIP Explorer instead.',
+  'ccip.inputsUnavailable':
+    'Could not load execution inputs ({message}). The message may still be verifying, or the API is temporarily unavailable.',
+  'ccip.unverified':
+    'Verification is not complete yet. Refresh once all verifiers have signed.',
+  'ccip.prevFailure': 'Reason for the previous failure',
+  'ccip.truncatedError':
+    'The OffRamp return-data buffer truncated the revert payload, so only the error type is available, not the message text.',
+  'ccip.messageId': 'Message ID',
+  'ccip.explorer': 'CCIP Explorer',
+  'ccip.sender': 'Sender (source)',
+  'ccip.receiver': 'Receiver (destination)',
+  'ccip.offramp': 'OffRamp',
+  'ccip.gasLimit': 'Original gas limit',
+  'ccip.version': 'Lane version',
+  'ccip.messageStatus': 'Status',
+  'ccip.sourceTx': 'Source transaction',
+  'ccip.destTx': 'Destination transaction',
+  'ccip.execTitle': 'Execute on the destination chain',
+  'ccip.execDesc':
+    'Manual execution is permissionless: anyone can pay the destination gas to trigger it. A dry run with eth_call always happens before sending.',
+  'ccip.switchChain': 'Switch to {chain}',
+  'ccip.switching': 'Switching…',
+  'ccip.gasOverride': 'Gas limit override',
+  'ccip.gasOriginal': 'Original',
+  'ccip.gasDouble': '2×',
+  'ccip.gasHint':
+    'Leave empty to use the message gas limit ({gas}). Raise it when the receiver ran out of gas; it cannot be lower than the original, and the maximum is 4,294,967,295.',
+  'ccip.gasInvalid':
+    'Gas limit must be an integer between 0 and 4,294,967,295.',
+  'ccip.gasTooLow':
+    'Gas limit cannot be lower than the original {min}.',
+  'ccip.execute': 'Simulate and execute',
+  'ccip.executed': 'Executed',
+  'ccip.executing': 'Waiting for your wallet…',
+  'ccip.simulating': 'Simulating…',
+  'ccip.confirming': 'Waiting for confirmation…',
+  'ccip.simFailed': 'Simulation failed, nothing was sent: {message}',
+  'ccip.txPending': 'Transaction submitted, waiting for confirmation…',
+  'ccip.txTimeout':
+    'Transaction submitted, but no receipt arrived within two minutes. Check it on the explorer, or refresh to re-read the message status.',
+  'ccip.txSuccess': 'Manual execution succeeded. The message is complete.',
+  'ccip.txReverted':
+    'The transaction landed but execution failed. If the receiver reverted, raise the gas limit and try again.',
+  'ccip.viewTx': 'View on explorer',
+  'ccip.advanced': 'Advanced details',
+  'ccip.ccvs': 'Verifiers (CCVs)',
+  'ccip.ccvCount': 'CCV data entries',
+  'ccip.encodedLength': 'encodedMessage size',
+  'ccip.calldataLength': 'calldata size',
+  'ccip.onchainState': 'On-chain state code',
+  'ccip.rejected': 'Signature request rejected',
+  'ccip.insufficientFunds':
+    'Not enough native token on the destination chain to pay for gas',
+  'ccip.sendFailed': 'Could not send: {message}',
+  'ccip.switchFailed': 'Could not switch network: {message}',
+  'ccip.calldataFailed': 'Could not build the execute calldata. Refresh and retry.',
+  'ccip.statusUnknown': 'Unknown',
+  'ccip.statusUntouched': 'Not executed',
+  'ccip.statusInProgress': 'Executing',
+  'ccip.statusSuccess': 'Succeeded',
+  'ccip.statusFailed': 'Failed',
+  'ccip.statusPending': 'Awaiting verification / not executed',
+  'ccip.reasonHintReceiver':
+    'The receiver contract reverted while handling the message. If it ran out of gas, retry with a higher gas limit; a business-logic revert needs a fix on the receiver side.',
+  'ccip.reasonHintToken':
+    'Token handling failed. Usually the token pool or the receiver rejects the transfer.',
+  'ccip.reasonHintGas':
+    'The OffRamp could not forward enough gas to the receiver. Retry with a higher gas limit.',
+  'ccip.reasonHintGasLimit':
+    'The gas limit override is below the message gas limit. Raise it.',
+  'ccip.reasonHintNoProgress':
+    'The retry made no progress because the receiver reverted again. Check the reason above.',
+  'ccip.reasonHintCursed':
+    'This source chain is currently cursed by the RMN. Wait for Chainlink to lift it.',
+  'ccip.reasonHintNotCommitted':
+    'The Merkle root has not been committed, so verification is still in progress.',
+  'ccip.faqTitle': 'When do you need manual execution?',
+  'ccip.faq1Title': 'Automatic execution failed',
+  'ccip.faq1Body':
+    'The receiver contract reverted while handling the message (out of gas, or a business-logic error), so the message is marked FAILURE. Anyone can retry, and the message fee is not charged twice.',
+  'ccip.faq2Title': 'Stuck for a long time',
+  'ccip.faq2Body':
+    'Verification is complete but the execution queue has not processed it. A manual trigger pushes it through; the caller pays the destination gas.',
+  'ccip.faq3Title': 'Not enough gas',
+  'ccip.faq3Body':
+    'When the receiver gas limit carried by the message is too low, override it with a higher value on retry. This is the usual fix for “insufficient capacity” style failures.',
 }
 
 const messages: Record<Language, Record<MessageKey, string>> = { zh, en }

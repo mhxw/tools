@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import type { Address } from 'viem'
+import type { Address, Hex } from 'viem'
 import { PancakeSwap } from '../PancakeSwap'
 import { WagmiProviders } from '../WagmiProviders'
 import { parseSwapUrl, type SwapUrlState } from '@/lib/pancake-swap'
@@ -36,6 +36,22 @@ export function SwapPage() {
     )
   }, [])
 
+  const syncPool = useCallback((pool: Hex | undefined) => {
+    const params = new URLSearchParams(window.location.search)
+    if (pool) {
+      params.set('pool', pool)
+    } else {
+      params.delete('pool')
+    }
+
+    const query = params.toString().replace(/%2C/gi, ',')
+    window.history.replaceState(
+      null,
+      '',
+      `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`,
+    )
+  }, [])
+
   return (
     <WagmiProviders>
       <PancakeSwap
@@ -43,7 +59,10 @@ export function SwapPage() {
         initialTo={initial?.to}
         initialChainUnsupported={initial?.chainSupported === false}
         initialInvalidToken={initial?.invalidToken === true}
+        initialPool={initial?.pool}
+        initialInvalidPool={initial?.invalidPool === true}
         onTokensChange={syncTokens}
+        onPoolChange={syncPool}
       />
     </WagmiProviders>
   )

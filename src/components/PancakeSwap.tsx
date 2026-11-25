@@ -11,6 +11,7 @@ import {
   parseUnits,
   type Address,
   type Hash,
+  type Hex,
 } from 'viem'
 import {
   useConnect,
@@ -34,6 +35,7 @@ import {
   BSC_TOKENS,
   ERC20_ABI,
   MIXED_QUOTER_ADDRESS,
+  NATIVE_TOKEN,
   PERMIT2_ABI,
   PERMIT2_ADDRESS,
   PRIVACY_BSC_CHAIN,
@@ -44,6 +46,10 @@ import {
   applySlippage,
   buildSwapCall,
   findBestSwapRoute,
+  infinityKeyMatchesPair,
+  isInfinityPoolRef,
+  isNativeToken,
+  resolveInfinityPoolRef,
   resolveToken,
   wrappedAddress,
   type PoolRef,
@@ -104,7 +110,9 @@ function sanitizeAmount(raw: string) {
 
 function poolLabel(pool: PoolRef) {
   if (pool.kind === 'v2') return 'V2'
-  return `V3 ${(pool.fee / 10_000).toFixed(2)}%`
+  if (pool.kind === 'v3') return `V3 ${(pool.fee / 10_000).toFixed(2)}%`
+  if (pool.pool.key.fee === 0x800000) return 'Infinity dynamic'
+  return `Infinity ${(pool.pool.key.fee / 10_000).toFixed(2)}%`
 }
 
 function shortAddress(address: string) {
@@ -268,7 +276,10 @@ type PancakeSwapProps = {
   initialTo?: Address
   initialChainUnsupported?: boolean
   initialInvalidToken?: boolean
+  initialPool?: Hex
+  initialInvalidPool?: boolean
   onTokensChange?: (from: Address, to: Address) => void
+  onPoolChange?: (pool: Hex | undefined) => void
 }
 
 export function PancakeSwap({
@@ -276,7 +287,10 @@ export function PancakeSwap({
   initialTo,
   initialChainUnsupported,
   initialInvalidToken,
+  initialPool,
+  initialInvalidPool,
   onTokensChange,
+  onPoolChange,
 }: PancakeSwapProps) {
   const { t } = useI18n()
   const publicClient = usePublicClient({ chainId: SWAP_CHAIN_ID })
@@ -309,10 +323,23 @@ export function PancakeSwap({
   const [addingToken, setAddingToken] = useState(false)
   const [tokenError, setTokenError] = useState<string>()
   const [urlError, setUrlError] = useState<string>()
+  const [poolInput, setPoolInput] = useState(initialPool ?? '')
+  const [poolOpen, setPoolOpen] = useState(Boolean(initialPool))
   const [tx, setTx] = useState<TxState>({ status: 'idle' })
   const [addingRpc, setAddingRpc] = useState(false)
   const [rpcMessage, setRpcMessage] = useState<RpcMessage>()
   const appliedUrl = useRef(false)
+  const syncedPool = useRef<Hex | undefined>(initialPool)
+
+  // The shareable link is read after hydration, so apply its pool once it
+  // arrives instead of only using the first-render value.
+  useEffect(() => {
+    if (!initialPool) return
+    // oxlint-disable-next-line react/set-state-in-effect -- apply the pool from the shareable link
+    setPoolInput(initialPool)
+    // oxlint-disable-next-line react/set-state-in-effect -- reveal the pool field for a linked pool
+    setPoolOpen(true)
+  }, [initialPool])
 
   // Apply tokens from a shareable link once, after hydration.
   useEffect(() => {
@@ -321,7 +348,8 @@ export function PancakeSwap({
       !initialFrom &&
       !initialTo &&
       !initialChainUnsupported &&
-      !initialInvalidToken
+      !initialInvalidToken &&
+      !initialInvalidPool
     ) {
       return
     }
@@ -358,6 +386,7 @@ export function PancakeSwap({
 
     if (initialChainUnsupported) errors.unshift(t('swap.urlChainError'))
     if (initialInvalidToken) errors.push(t('swap.urlInvalidToken'))
+    if (initialInvalidPool) errors.push(t('swap.poolInvalid'))
 
     void (async () => {
       const [from, to] = await Promise.all([
@@ -398,6 +427,7 @@ export function PancakeSwap({
     initialTo,
     initialChainUnsupported,
     initialInvalidToken,
+    initialInvalidPool,
     publicClient,
     t,
   ])
@@ -520,6 +550,111 @@ export function PancakeSwap({
     },
   })
 
+  const trimmedPool = poolInput.trim()
+  const poolRef = isInfinityPoolRef(trimmedPool)
+    ? (trimmedPool as Hex)
+    : undefined
+  const poolQuery = useQuery({
+    queryKey: ['swap-infinity-pool', SWAP_CHAIN_ID, poolRef ?? ''],
+    enabled: Boolean(publicClient && poolRef),
+    queryFn: async () => {
+      if (!publicClient || !poolRef) throw new Error('missing pool')
+      return resolveInfinityPoolRef(publicClient, poolRef)
+    },
+    retry: 1,
+  })
+  const activePool = poolRef ? (poolQuery.data ?? undefined) : undefined
+  const poolPending = Boolean(poolRef) && poolQuery.isPending
+  const poolNotFound =
+    Boolean(poolRef) && poolQuery.isSuccess && poolQuery.data === null
+  const poolBin = poolQuery.isError && /bin/i.test(poolQuery.error.message)
+  const poolQueryError = poolQuery.isError && !poolBin
+  const poolMismatch = Boolean(
+    activePool &&
+      !infinityKeyMatchesPair(
+        activePool.key,
+        fromToken.address,
+        toToken.address,
+      ),
+  )
+  const poolFormatError = Boolean(trimmedPool) && !poolRef
+
+  useEffect(() => {
+    if (syncedPool.current === poolRef) return
+    syncedPool.current = poolRef
+    onPoolChange?.(poolRef)
+  }, [onPoolChange, poolRef])
+
+  // A link may carry only `?pool=`, so load that pool's currencies once.
+  const appliedPoolPair = useRef<string | undefined>(undefined)
+  useEffect(() => {
+    if (!publicClient || !activePool) return
+    if (initialFrom || initialTo) return
+    if (
+      infinityKeyMatchesPair(
+        activePool.key,
+        fromToken.address,
+        toToken.address,
+      )
+    ) {
+      return
+    }
+    const id = activePool.id.toLowerCase()
+    if (appliedPoolPair.current === id) return
+    appliedPoolPair.current = id
+
+    let cancelled = false
+    const load = (address: Address) =>
+      isNativeToken(address)
+        ? Promise.resolve(NATIVE_TOKEN)
+        : resolveToken(publicClient, address)
+
+    void (async () => {
+      try {
+        const [nextFrom, nextTo] = await Promise.all([
+          load(activePool.key.currency0),
+          load(activePool.key.currency1),
+        ])
+        if (cancelled) return
+
+        const known = (address: Address) =>
+          BSC_TOKENS.some(
+            (item) => item.address.toLowerCase() === address.toLowerCase(),
+          )
+        setCustomTokens((current) => {
+          const additions = [nextFrom, nextTo].filter(
+            (item) =>
+              !item.native &&
+              !known(item.address) &&
+              !current.some(
+                (entry) =>
+                  entry.address.toLowerCase() ===
+                  item.address.toLowerCase(),
+              ),
+          )
+          return additions.length > 0 ? [...current, ...additions] : current
+        })
+        setFromToken(nextFrom)
+        setToToken(nextTo)
+        onTokensChange?.(nextFrom.address, nextTo.address)
+      } catch {
+        // Token metadata can fail on a bad pool; keep the current pair.
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [
+    activePool,
+    initialFrom,
+    initialTo,
+    fromToken.address,
+    toToken.address,
+    onTokensChange,
+    publicClient,
+  ])
+
   const quoteQuery = useQuery({
     queryKey: [
       'swap-quote',
@@ -527,9 +662,13 @@ export function PancakeSwap({
       fromToken.address,
       toToken.address,
       quoteAmount.toString(),
+      poolRef ?? 'auto',
     ],
     enabled: Boolean(
-      publicClient && quoteAmount > 0n && !sameAsset,
+      publicClient &&
+        quoteAmount > 0n &&
+        !sameAsset &&
+        (!poolRef || Boolean(activePool && !poolMismatch)),
     ),
     queryFn: async (): Promise<SwapRoute | null> => {
       if (!publicClient) throw new Error('missing client')
@@ -538,6 +677,7 @@ export function PancakeSwap({
         fromToken.address,
         toToken.address,
         quoteAmount,
+        poolRef ? { infinityPoolId: poolRef } : undefined,
       )
     },
     retry: 1,
@@ -1030,6 +1170,78 @@ export function PancakeSwap({
 
       {urlError && <p className="notice notice-warning">{urlError}</p>}
 
+      <details
+        className="swap-pool-pin"
+        open={poolOpen}
+        onToggle={(event) => setPoolOpen(event.currentTarget.open)}
+      >
+        <summary>
+          <span>{t('swap.poolPinTitle')}</span>
+          {activePool && (
+            <span className="swap-pool swap-pool-infinity">
+              {poolLabel({ kind: 'infinity', pool: activePool })}
+            </span>
+          )}
+        </summary>
+        <div className="swap-pool-pin-body">
+          <div className="swap-pool-pin-row">
+            <input
+              className="swap-pool-input"
+              value={poolInput}
+              onChange={(event) => setPoolInput(event.target.value.trim())}
+              placeholder={t('swap.poolPlaceholder')}
+              spellCheck={false}
+              autoComplete="off"
+              aria-label={t('swap.poolPinTitle')}
+            />
+            {poolInput && (
+              <button
+                className="link-button"
+                type="button"
+                onClick={() => setPoolInput('')}
+              >
+                {t('swap.poolClear')}
+              </button>
+            )}
+          </div>
+          <p className="swap-pool-hint">{t('swap.poolPinHint')}</p>
+          {poolPending && (
+            <p className="swap-pool-status">
+              <span className="spinner" /> {t('swap.poolLoading')}
+            </p>
+          )}
+          {poolFormatError && (
+            <p className="notice notice-warning">{t('swap.poolInvalid')}</p>
+          )}
+          {poolNotFound && (
+            <p className="notice notice-warning">{t('swap.poolNotFound')}</p>
+          )}
+          {poolBin && (
+            <p className="notice notice-warning">
+              {t('swap.poolBinUnsupported')}
+            </p>
+          )}
+          {poolQueryError && (
+            <p className="notice notice-error">
+              {t('swap.quoteError', {
+                message: describeError(poolQuery.error),
+              })}
+            </p>
+          )}
+          {poolMismatch && (
+            <p className="notice notice-warning">{t('swap.poolMismatch')}</p>
+          )}
+          {activePool && !poolMismatch && (
+            <p className="swap-pool-meta">
+              {t('swap.poolLocked', {
+                id: `${activePool.id.slice(0, 10)}…${activePool.id.slice(-6)}`,
+                fee: poolLabel({ kind: 'infinity', pool: activePool }),
+              })}
+            </p>
+          )}
+        </div>
+      </details>
+
       <div className="swap-layout">
         <div className="swap-form">
           <div className="swap-token-card">
@@ -1169,6 +1381,18 @@ export function PancakeSwap({
 
           {quoteAmount === 0n ? (
             <p className="swap-quote-empty">{t('swap.emptyQuote')}</p>
+          ) : poolPending ? (
+            <div className="status-box status-loading">
+              <span className="spinner" /> {t('swap.poolLoading')}
+            </div>
+          ) : poolNotFound || poolBin || poolMismatch ? (
+            <p className="notice notice-warning">
+              {poolNotFound
+                ? t('swap.poolNotFound')
+                : poolBin
+                  ? t('swap.poolBinUnsupported')
+                  : t('swap.poolMismatch')}
+            </p>
           ) : quoteQuery.isError ? (
             <p className="notice notice-error">
               {t('swap.quoteError', {
@@ -1201,7 +1425,9 @@ export function PancakeSwap({
                       className={
                         hop.pool.kind === 'v2'
                           ? 'swap-pool swap-pool-v2'
-                          : 'swap-pool swap-pool-v3'
+                          : hop.pool.kind === 'v3'
+                            ? 'swap-pool swap-pool-v3'
+                            : 'swap-pool swap-pool-infinity'
                       }
                     >
                       {poolLabel(hop.pool)}

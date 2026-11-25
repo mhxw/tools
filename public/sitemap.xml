@@ -129,4 +129,18 @@
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://mhxw.github.io/tools/zh/eip7702/metamask/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://mhxw.github.io/tools/eip7702/metamask/" />
   </url>
+  <url>
+    <loc>https://mhxw.github.io/tools/ccip/</loc>
+    <lastmod>2026-11-22</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mhxw.github.io/tools/ccip/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://mhxw.github.io/tools/zh/ccip/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mhxw.github.io/tools/ccip/" />
+  </url>
+  <url>
+    <loc>https://mhxw.github.io/tools/zh/ccip/</loc>
+    <lastmod>2026-11-22</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mhxw.github.io/tools/ccip/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://mhxw.github.io/tools/zh/ccip/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mhxw.github.io/tools/ccip/" />
+  </url>
 </urlset>

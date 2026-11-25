@@ -27,6 +27,7 @@ const NAV: Array<{ id: TopLevelToolId; label: MessageKey; path: string }> = [
   { id: 'stack', label: 'app.navStack', path: '/stack' },
   { id: 'diff', label: 'app.navDiff', path: '/diff' },
   { id: 'swap', label: 'app.navSwap', path: '/swap' },
+  { id: 'ccip', label: 'app.navCcip', path: '/ccip' },
 ]
 
 export function Shell({ children }: { children: ReactNode }) {
@@ -85,7 +86,8 @@ export function Shell({ children }: { children: ReactNode }) {
           {activeTopLevel !== 'domain' &&
             activeTopLevel !== 'stack' &&
             activeTopLevel !== 'diff' &&
-            activeTopLevel !== 'swap' && (
+            activeTopLevel !== 'swap' &&
+            activeTopLevel !== 'ccip' && (
             <label className="network-select-wrap">
               <select
                 className="network-select"

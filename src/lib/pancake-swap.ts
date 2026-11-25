@@ -6,6 +6,7 @@ import {
   encodeFunctionData,
   getAddress,
   isAddress,
+  keccak256,
   parseAbi,
   toHex,
   zeroAddress,
@@ -20,6 +21,12 @@ export const UNIVERSAL_ROUTER_ADDRESS: Address =
 /** PancakeSwap infinity-periphery MixedQuoter on BNB Chain. */
 export const MIXED_QUOTER_ADDRESS: Address =
   '0x2dCbF7B985c8C5C931818e4E107bAe8aaC8dAB7C'
+/** PancakeSwap Infinity concentrated-liquidity pool manager on BNB Chain. */
+export const INFINITY_CL_POOL_MANAGER_ADDRESS: Address =
+  '0xa0FfB9c1CE1Fe56963B0321B32E7A0302114058b'
+/** PancakeSwap Infinity bin pool manager on BNB Chain. */
+export const INFINITY_BIN_POOL_MANAGER_ADDRESS: Address =
+  '0xC697d2898e0D09264376196696c51D7aBbbAA4a9'
 /** Permit2 deployment used by the UniversalRouter on BNB Chain. */
 export const PERMIT2_ADDRESS: Address =
   '0x31c2F6fcFf4F8759b3Bd5Bf0e1084A055615c768'
@@ -74,6 +81,11 @@ export const UNIVERSAL_ROUTER_ABI = parseAbi([
 const MIXED_QUOTER_ABI = parseAbi([
   'function quoteExactInputSingleV2((address tokenIn, address tokenOut, uint256 amountIn) params) returns (uint256 amountOut, uint256 gasEstimate)',
   'function quoteExactInputSingleV3((address tokenIn, address tokenOut, uint256 amountIn, uint24 fee, uint160 sqrtPriceLimitX96) params) returns (uint256 amountOut, uint160 sqrtPriceX96After, uint32 initializedTicksCrossed, uint256 gasEstimate)',
+  'function quoteMixedExactInput(address[] paths, bytes actions, bytes[] params, uint256 amountIn) returns (uint256 amountOut, uint256 gasEstimate)',
+])
+
+const INFINITY_POOL_MANAGER_ABI = parseAbi([
+  'function poolIdToPoolKey(bytes32 poolId) view returns (address currency0, address currency1, address hooks, address poolManager, uint24 fee, bytes32 parameters)',
 ])
 
 const MULTICALL3_ABI = parseAbi([
@@ -154,12 +166,16 @@ export type SwapUrlState = {
   to?: Address
   chainSupported: boolean
   invalidToken?: boolean
+  /** Infinity pool ID or transaction hash from `?pool=`. */
+  pool?: Hex
+  invalidPool?: boolean
 }
 
 /**
  * Reads shareable swap links. Both compact pairs and explicit names work:
  * `?chain=bsc,bsc&token=0xabc,0xdef`
  * `?inputchain=bsc&outputchain=bsc&inputtoken=0xabc&outputtoken=0xdef`
+ * `?pool=0x…` pins a PancakeSwap Infinity pool.
  */
 export function parseSwapUrl(search: string): SwapUrlState {
   const params = new URLSearchParams(search)
@@ -180,6 +196,10 @@ export function parseSwapUrl(search: string): SwapUrlState {
   const rawTo = values.get('outputtoken') ?? tokens[1]
   const from = tokenFromParam(rawFrom)
   const to = tokenFromParam(rawTo)
+  const rawPool = values.get('pool')
+  const pool = isInfinityPoolRef(rawPool)
+    ? (rawPool.trim() as Hex)
+    : undefined
 
   return {
     from,
@@ -187,10 +207,33 @@ export function parseSwapUrl(search: string): SwapUrlState {
     chainSupported: true,
     invalidToken:
       (Boolean(rawFrom) && !from) || (Boolean(rawTo) && !to),
+    pool,
+    invalidPool: Boolean(rawPool) && !pool,
   }
 }
 
-export type PoolRef = { kind: 'v2' } | { kind: 'v3'; fee: number }
+/**
+ * A PancakeSwap Infinity CL pool key. Infinity identifies pools by the hash of
+ * this struct instead of a factory-created pair address.
+ */
+export type InfinityPoolKey = {
+  currency0: Address
+  currency1: Address
+  hooks: Address
+  poolManager: Address
+  fee: number
+  parameters: Hex
+}
+
+export type InfinityPool = {
+  id: Hex
+  key: InfinityPoolKey
+}
+
+export type PoolRef =
+  | { kind: 'v2' }
+  | { kind: 'v3'; fee: number }
+  | { kind: 'infinity'; pool: InfinityPool }
 
 export type QuoteCandidate = {
   pool: PoolRef
@@ -214,10 +257,240 @@ type McResult =
   | { success: boolean; returnData: Hex }
   | readonly [boolean, Hex]
 
-function decodeQuote(
-  kind: PoolRef,
-  data: Hex,
-): bigint | undefined {
+const POOL_KEY_COMPONENTS = [
+  { name: 'currency0', type: 'address' },
+  { name: 'currency1', type: 'address' },
+  { name: 'hooks', type: 'address' },
+  { name: 'poolManager', type: 'address' },
+  { name: 'fee', type: 'uint24' },
+  { name: 'parameters', type: 'bytes32' },
+] as const
+
+const POOL_KEY_TUPLE = {
+  name: 'poolKey',
+  type: 'tuple',
+  components: POOL_KEY_COMPONENTS,
+} as const
+
+/** Fee / tick-spacing pairs commonly used when creating Infinity CL pools. */
+const INFINITY_POOL_SHAPES = [
+  { fee: 100, tickSpacing: 1 },
+  { fee: 500, tickSpacing: 10 },
+  { fee: 2500, tickSpacing: 50 },
+  { fee: 10000, tickSpacing: 200 },
+  { fee: 0x800000, tickSpacing: 1 },
+  { fee: 0x800000, tickSpacing: 10 },
+  { fee: 0x800000, tickSpacing: 50 },
+  { fee: 0x800000, tickSpacing: 200 },
+] as const
+
+/**
+ * Infinity pools cannot be enumerated from a static site, so discovery probes
+ * a bounded set of common CL fee / tick-spacing shapes for the selected pair.
+ * Any other pool can be loaded explicitly by pool ID or transaction hash; a
+ * 32-byte reference is accepted from the URL or UI.
+ */
+export function isInfinityPoolRef(value: string | undefined): value is Hex {
+  return /^0x[0-9a-fA-F]{64}$/.test(value?.trim() ?? '')
+}
+
+function sortCurrencies(a: Address, b: Address): [Address, Address] {
+  return a.toLowerCase() < b.toLowerCase() ? [a, b] : [b, a]
+}
+
+export function infinityPoolKey(
+  currencyA: Address,
+  currencyB: Address,
+  fee: number,
+  tickSpacing: number,
+  hooks: Address = zeroAddress,
+  poolManager: Address = INFINITY_CL_POOL_MANAGER_ADDRESS,
+): InfinityPoolKey {
+  const [currency0, currency1] = sortCurrencies(currencyA, currencyB)
+  return {
+    currency0,
+    currency1,
+    hooks,
+    poolManager,
+    fee,
+    // CL parameters keep hook flags in the low 16 bits and tickSpacing in
+    // bits 16..39 (see CLPoolParametersHelper.getTickSpacing).
+    parameters: `0x${(BigInt(tickSpacing) << 16n)
+      .toString(16)
+      .padStart(64, '0')}` as Hex,
+  }
+}
+
+export function infinityPoolId(key: InfinityPoolKey): Hex {
+  return keccak256(
+    encodeAbiParameters(POOL_KEY_COMPONENTS, [
+      key.currency0,
+      key.currency1,
+      key.hooks,
+      key.poolManager,
+      key.fee,
+      key.parameters,
+    ]),
+  )
+}
+
+export function infinityKeyMatchesPair(
+  key: InfinityPoolKey,
+  tokenIn: Address,
+  tokenOut: Address,
+): boolean {
+  const mine = new Set([
+    key.currency0.toLowerCase(),
+    key.currency1.toLowerCase(),
+  ])
+  return (
+    mine.has(tokenIn.toLowerCase()) && mine.has(tokenOut.toLowerCase())
+  )
+}
+
+const infinityPoolCache = new Map<string, InfinityPool | null>()
+const infinityPairCache = new Map<string, InfinityPool[]>()
+
+/** Loads a pool key from its ID and builds the `InfinityPool` wrapper. */
+export async function resolveInfinityPool(
+  client: PublicClient,
+  poolId: Hex,
+): Promise<InfinityPool | null> {
+  const cached = infinityPoolCache.get(poolId.toLowerCase())
+  if (cached !== undefined) return cached
+
+  const [key, binKey] = await client.multicall({
+    allowFailure: true,
+    contracts: [
+      {
+        address: INFINITY_CL_POOL_MANAGER_ADDRESS,
+        abi: INFINITY_POOL_MANAGER_ABI,
+        functionName: 'poolIdToPoolKey',
+        args: [poolId],
+      },
+      {
+        address: INFINITY_BIN_POOL_MANAGER_ADDRESS,
+        abi: INFINITY_POOL_MANAGER_ABI,
+        functionName: 'poolIdToPoolKey',
+        args: [poolId],
+      },
+    ],
+  })
+
+  if (key.status === 'success') {
+    const pool: InfinityPool = {
+      id: poolId,
+      key: {
+        currency0: getAddress(key.result[0]),
+        currency1: getAddress(key.result[1]),
+        hooks: getAddress(key.result[2]),
+        poolManager: getAddress(key.result[3]),
+        fee: key.result[4],
+        parameters: key.result[5],
+      },
+    }
+    if (
+      pool.key.poolManager !== zeroAddress &&
+      pool.key.currency0.toLowerCase() !== pool.key.currency1.toLowerCase() &&
+      infinityPoolId(pool.key).toLowerCase() === poolId.toLowerCase()
+    ) {
+      infinityPoolCache.set(poolId.toLowerCase(), pool)
+      return pool
+    }
+  }
+
+  if (binKey.status === 'success' && binKey.result[3] !== zeroAddress) {
+    throw new Error('Infinity bin pools are not supported')
+  }
+
+  infinityPoolCache.set(poolId.toLowerCase(), null)
+  return null
+}
+
+/**
+ * Accepts a pool ID or a transaction hash. For a transaction, the pool ID is
+ * read from any pool-manager log (Infinity events index the pool ID first).
+ */
+export async function resolveInfinityPoolRef(
+  client: PublicClient,
+  value: string,
+): Promise<InfinityPool | null> {
+  const ref = value.trim() as Hex
+  if (!isInfinityPoolRef(ref)) {
+    throw new Error('invalid pool reference')
+  }
+
+  const direct = await resolveInfinityPool(client, ref)
+  if (direct) return direct
+
+  let receipt
+  try {
+    receipt = await client.getTransactionReceipt({ hash: ref })
+  } catch {
+    return null
+  }
+
+  for (const log of receipt.logs) {
+    const manager = log.address.toLowerCase()
+    if (
+      manager !== INFINITY_CL_POOL_MANAGER_ADDRESS.toLowerCase() &&
+      manager !== INFINITY_BIN_POOL_MANAGER_ADDRESS.toLowerCase()
+    ) {
+      continue
+    }
+    const topic = log.topics[1]
+    if (!topic) continue
+    const pool = await resolveInfinityPool(client, topic)
+    if (pool) return pool
+  }
+  return null
+}
+
+/** Pinned pools plus a bounded probe of common Infinity CL pool shapes. */
+export async function findInfinityPools(
+  client: PublicClient,
+  tokenIn: Address,
+  tokenOut: Address,
+): Promise<InfinityPool[]> {
+  const cacheKey = [tokenIn, tokenOut]
+    .map((address) => address.toLowerCase())
+    .sort()
+    .join(':')
+  const cached = infinityPairCache.get(cacheKey)
+  if (cached) return cached
+
+  const pools: InfinityPool[] = []
+  const seen = new Set<string>()
+
+  const candidates = INFINITY_POOL_SHAPES.map(({ fee, tickSpacing }) => {
+    const key = infinityPoolKey(tokenIn, tokenOut, fee, tickSpacing)
+    return { id: infinityPoolId(key), key }
+  })
+
+  const results = await client.multicall({
+    allowFailure: true,
+    contracts: candidates.map((candidate) => ({
+      address: INFINITY_CL_POOL_MANAGER_ADDRESS,
+      abi: INFINITY_POOL_MANAGER_ABI,
+      functionName: 'poolIdToPoolKey' as const,
+      args: [candidate.id] as const,
+    })),
+  })
+
+  results.forEach((result, index) => {
+    if (result.status !== 'success') return
+    if (result.result[3] === zeroAddress) return
+    const candidate = candidates[index]
+    if (seen.has(candidate.id)) return
+    seen.add(candidate.id)
+    pools.push(candidate)
+  })
+
+  infinityPairCache.set(cacheKey, pools)
+  return pools
+}
+
+function decodeQuote(kind: PoolRef, data: Hex): bigint | undefined {
   try {
     if (kind.kind === 'v2') {
       const [amountOut] = decodeFunctionResult({
@@ -227,9 +500,17 @@ function decodeQuote(
       })
       return amountOut
     }
+    if (kind.kind === 'v3') {
+      const [amountOut] = decodeFunctionResult({
+        abi: MIXED_QUOTER_ABI,
+        functionName: 'quoteExactInputSingleV3',
+        data,
+      })
+      return amountOut
+    }
     const [amountOut] = decodeFunctionResult({
       abi: MIXED_QUOTER_ABI,
-      functionName: 'quoteExactInputSingleV3',
+      functionName: 'quoteMixedExactInput',
       data,
     })
     return amountOut
@@ -238,8 +519,7 @@ function decodeQuote(
   }
 }
 
-/** Every pool that is probed for each pair, in call-data order. */
-const POOLS: PoolRef[] = [
+const V2_V3_POOLS: PoolRef[] = [
   { kind: 'v2' },
   ...V3_FEE_TIERS.map((fee) => ({ kind: 'v3' as const, fee })),
 ]
@@ -248,6 +528,24 @@ type PairQuoteRequest = {
   tokenIn: Address
   tokenOut: Address
   amountIn: bigint
+  pools: PoolRef[]
+}
+
+/**
+ * Infinity quote params are a struct with a dynamic `hookData` member, so the
+ * struct itself must be encoded as a single ABI argument (leading offset).
+ */
+function infinityQuoteParams(pool: InfinityPool): Hex {
+  return encodeAbiParameters(
+    [
+      {
+        name: 'params',
+        type: 'tuple',
+        components: [POOL_KEY_TUPLE, { name: 'hookData', type: 'bytes' }],
+      },
+    ],
+    [{ poolKey: pool.key, hookData: '0x' }],
+  )
 }
 
 function quoteCallData(pool: PoolRef, request: PairQuoteRequest): Hex {
@@ -258,10 +556,22 @@ function quoteCallData(pool: PoolRef, request: PairQuoteRequest): Hex {
       args: [request],
     })
   }
+  if (pool.kind === 'v3') {
+    return encodeFunctionData({
+      abi: MIXED_QUOTER_ABI,
+      functionName: 'quoteExactInputSingleV3',
+      args: [{ ...request, fee: pool.fee, sqrtPriceLimitX96: 0n }],
+    })
+  }
   return encodeFunctionData({
     abi: MIXED_QUOTER_ABI,
-    functionName: 'quoteExactInputSingleV3',
-    args: [{ ...request, fee: pool.fee, sqrtPriceLimitX96: 0n }],
+    functionName: 'quoteMixedExactInput',
+    args: [
+      [request.tokenIn, request.tokenOut],
+      '0x04', // INFI_CL_EXACT_INPUT_SINGLE
+      [infinityQuoteParams(pool.pool)],
+      request.amountIn,
+    ],
   })
 }
 
@@ -275,13 +585,23 @@ async function quotePairs(
 ): Promise<QuoteCandidate[][]> {
   if (requests.length === 0) return []
 
-  const calls = requests.flatMap((request) =>
-    POOLS.map((pool) => ({
-      target: MIXED_QUOTER_ADDRESS,
-      allowFailure: true,
-      callData: quoteCallData(pool, request),
-    })),
-  )
+  const calls: {
+    target: Address
+    allowFailure: boolean
+    callData: Hex
+  }[] = []
+  const owners: { requestIndex: number; pool: PoolRef }[] = []
+
+  requests.forEach((request, requestIndex) => {
+    request.pools.forEach((pool) => {
+      calls.push({
+        target: MIXED_QUOTER_ADDRESS,
+        allowFailure: true,
+        callData: quoteCallData(pool, request),
+      })
+      owners.push({ requestIndex, pool })
+    })
+  })
 
   const raw = await client.call({
     to: MULTICALL3_ADDRESS,
@@ -301,15 +621,18 @@ async function quotePairs(
 
   const quotes: QuoteCandidate[][] = requests.map(() => [])
   decoded.forEach((result, index) => {
-    const success =
-      'success' in result ? result.success : result[0]
+    const success = 'success' in result ? result.success : result[0]
     const returnData =
       'returnData' in result ? result.returnData : result[1]
     if (!success) return
-    const pool = POOLS[index % POOLS.length]
-    const amountOut = decodeQuote(pool, returnData)
+    const owner = owners[index]
+    if (!owner) return
+    const amountOut = decodeQuote(owner.pool, returnData)
     if (amountOut === undefined || amountOut === 0n) return
-    quotes[Math.floor(index / POOLS.length)].push({ pool, amountOut })
+    quotes[owner.requestIndex].push({
+      pool: owner.pool,
+      amountOut,
+    })
   })
 
   for (const pairQuotes of quotes) {
@@ -346,17 +669,48 @@ function hopFrom(
  * The search uses at most two Multicall3 round-trips: one for every
  * first-hop candidate, and one for the follow-up hops that depend on them.
  */
+export type SwapRouteOptions = {
+  /** Restrict the direct route to this Infinity pool ID. */
+  infinityPoolId?: Hex
+}
+
 export async function findBestSwapRoute(
   client: PublicClient,
   tokenIn: Address,
   tokenOut: Address,
   amountIn: bigint,
+  options: SwapRouteOptions = {},
 ): Promise<SwapRoute | null> {
   if (amountIn <= 0n) return null
   const start = wrappedAddress(tokenIn)
   const end = wrappedAddress(tokenOut)
   if (start.toLowerCase() === end.toLowerCase()) return null
 
+  if (options.infinityPoolId) {
+    const pool = await resolveInfinityPoolRef(
+      client,
+      options.infinityPoolId,
+    )
+    if (!pool || !infinityKeyMatchesPair(pool.key, tokenIn, tokenOut)) {
+      return null
+    }
+    const [quotes] = await quotePairs(client, [
+      {
+        tokenIn,
+        tokenOut,
+        amountIn,
+        pools: [{ kind: 'infinity', pool }],
+      },
+    ])
+    const quote = quotes?.[0]
+    if (!quote) return null
+    return {
+      hops: [hopFrom(tokenIn, tokenOut, amountIn, quote)],
+      amountOut: quote.amountOut,
+    }
+  }
+
+  const infinityPools = await findInfinityPools(client, tokenIn, tokenOut)
   const mids = [WBNB_ADDRESS, USDT_ADDRESS].filter(
     (mid) =>
       mid.toLowerCase() !== start.toLowerCase() &&
@@ -364,9 +718,35 @@ export async function findBestSwapRoute(
   )
 
   const firstRequests: PairQuoteRequest[] = [
-    { tokenIn: start, tokenOut: end, amountIn },
-    ...mids.map((mid) => ({ tokenIn: start, tokenOut: mid, amountIn })),
+    { tokenIn: start, tokenOut: end, amountIn, pools: V2_V3_POOLS },
   ]
+
+  // Infinity keys must use the real currencies, so native BNB is quoted
+  // against address(0) rather than its WBNB wrapper.
+  let infinityRequestIndex = -1
+  if (infinityPools.length > 0) {
+    infinityRequestIndex = firstRequests.length
+    firstRequests.push({
+      tokenIn,
+      tokenOut,
+      amountIn,
+      pools: infinityPools.map((pool) => ({
+        kind: 'infinity' as const,
+        pool,
+      })),
+    })
+  }
+
+  const midRequestStart = firstRequests.length
+  firstRequests.push(
+    ...mids.map((mid) => ({
+      tokenIn: start,
+      tokenOut: mid,
+      amountIn,
+      pools: V2_V3_POOLS,
+    })),
+  )
+
   const firstQuotes = await quotePairs(client, firstRequests)
 
   const candidates: SwapRoute[] = []
@@ -379,15 +759,27 @@ export async function findBestSwapRoute(
     })
   }
 
+  const infinityDirect =
+    infinityRequestIndex >= 0
+      ? firstQuotes[infinityRequestIndex]?.[0]
+      : undefined
+  if (infinityDirect) {
+    candidates.push({
+      hops: [hopFrom(tokenIn, tokenOut, amountIn, infinityDirect)],
+      amountOut: infinityDirect.amountOut,
+    })
+  }
+
   const secondRequests: PairQuoteRequest[] = []
   const secondMidIndex: number[] = []
   mids.forEach((mid, index) => {
-    const first = firstQuotes[index + 1]?.[0]
+    const first = firstQuotes[midRequestStart + index]?.[0]
     if (!first) return
     secondRequests.push({
       tokenIn: mid,
       tokenOut: end,
       amountIn: first.amountOut,
+      pools: V2_V3_POOLS,
     })
     secondMidIndex.push(index)
   })
@@ -395,7 +787,7 @@ export async function findBestSwapRoute(
   const secondQuotes = await quotePairs(client, secondRequests)
   secondRequests.forEach((_, requestIndex) => {
     const midIndex = secondMidIndex[requestIndex]
-    const first = firstQuotes[midIndex + 1]?.[0]
+    const first = firstQuotes[midRequestStart + midIndex]?.[0]
     const second = secondQuotes[requestIndex]?.[0]
     if (!first || !second) return
     candidates.push({
@@ -446,6 +838,7 @@ type RouteSegment = {
 function toSegments(hops: HopQuote[]): RouteSegment[] {
   const segments: RouteSegment[] = []
   for (const hop of hops) {
+    if (hop.pool.kind === 'infinity') continue
     const kind = hop.pool.kind
     const current = segments[segments.length - 1]
     if (current && current.kind === kind) {
@@ -467,6 +860,87 @@ function v3Path(segment: RouteSegment): Hex {
   return path
 }
 
+/**
+ * CL_SWAP_EXACT_IN_SINGLE + SETTLE_ALL + TAKE_ALL. The router moves the input
+ * through Permit2 (or msg.value for native BNB) and the vault pays the output
+ * straight to the connected wallet.
+ */
+function buildInfinitySwapCall(
+  route: SwapRoute,
+  slippageBps: number,
+): SwapCall {
+  const hop = route.hops[0]
+  if (route.hops.length !== 1 || hop?.pool.kind !== 'infinity') {
+    throw new Error('Unsupported Infinity route')
+  }
+
+  const { key } = hop.pool.pool
+  const tokenIn =
+    hop.tokenIn.toLowerCase() === key.currency0.toLowerCase()
+      ? key.currency0
+      : key.currency1
+  const tokenOut =
+    tokenIn.toLowerCase() === key.currency0.toLowerCase()
+      ? key.currency1
+      : key.currency0
+  if (
+    tokenIn.toLowerCase() !== hop.tokenIn.toLowerCase() ||
+    tokenOut.toLowerCase() !== hop.tokenOut.toLowerCase()
+  ) {
+    throw new Error('Infinity pool does not contain this pair')
+  }
+
+  const zeroForOne =
+    tokenIn.toLowerCase() === key.currency0.toLowerCase()
+  const minOut = applySlippage(route.amountOut, slippageBps)
+  const actions = '0x060c0f'
+  const params = [
+    encodeAbiParameters(
+      [
+        {
+          name: 'params',
+          type: 'tuple',
+          components: [
+            POOL_KEY_TUPLE,
+            { name: 'zeroForOne', type: 'bool' },
+            { name: 'amountIn', type: 'uint128' },
+            { name: 'amountOutMinimum', type: 'uint128' },
+            { name: 'hookData', type: 'bytes' },
+          ],
+        },
+      ],
+      [
+        {
+          poolKey: key,
+          zeroForOne,
+          amountIn: hop.amountIn,
+          amountOutMinimum: minOut,
+          hookData: '0x',
+        },
+      ],
+    ),
+    encodeAbiParameters(
+      [{ type: 'address' }, { type: 'uint256' }],
+      [tokenIn, hop.amountIn],
+    ),
+    encodeAbiParameters(
+      [{ type: 'address' }, { type: 'uint256' }],
+      [tokenOut, minOut],
+    ),
+  ]
+
+  return {
+    commands: '0x10', // INFI_SWAP
+    inputs: [
+      encodeAbiParameters(
+        [{ type: 'bytes' }, { type: 'bytes[]' }],
+        [actions, params],
+      ),
+    ],
+    value: isNativeToken(tokenIn) ? hop.amountIn : 0n,
+  }
+}
+
 export function buildSwapCall(
   route: SwapRoute,
   recipient: Address,
@@ -474,6 +948,13 @@ export function buildSwapCall(
   nativeIn: boolean,
   nativeOut: boolean,
 ): SwapCall {
+  if (route.hops.length === 1 && route.hops[0].pool.kind === 'infinity') {
+    return buildInfinitySwapCall(route, slippageBps)
+  }
+  if (route.hops.some((hop) => hop.pool.kind === 'infinity')) {
+    throw new Error('Mixed Infinity routes are not supported')
+  }
+
   const commands: Hex[] = []
   const inputs: Hex[] = []
   const amountIn = route.hops[0]?.amountIn ?? 0n
