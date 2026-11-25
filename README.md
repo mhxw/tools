@@ -19,7 +19,10 @@ pnpm dev    # http://localhost:3000/tools/
 pnpm build  # static site in out/
 ```
 
-Source code lives on `main`; the built site lives on `page`.
+Source code lives on `main`. Pushing to `main` triggers
+`.github/workflows/deploy.yml`, which builds the static site and publishes it
+to GitHub Pages. The old `page` branch holds a manual build from before the
+workflow existed and is no longer updated.
 
 ## License
 
