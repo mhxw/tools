@@ -14,6 +14,11 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
   reactStrictMode: true,
+  // Ask Next.js to warn about security advisories affecting the installed
+  // version during builds, so upgrades land promptly.
+  experimental: {
+    agentUpgrade: 'security',
+  },
 }
 
 export default nextConfig
